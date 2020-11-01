@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from miha.optimizer import CnnAutoencoder
+from miha.model import CnnAutoencoder
 
 # Initialization CNN Autoencoder for remote sensing data gapfilling
 # You need to prepare a class that will have "forward" function in addition to "initialization"
