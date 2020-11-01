@@ -1,6 +1,12 @@
 import torch
 import torch.nn as nn
+
 from miha.model import CnnAutoencoder
+
+# Necessary for reproducibility of results
+random_seed = 100
+torch.backends.cudnn.enabled = False
+torch.manual_seed(random_seed)
 
 # Initialization CNN Autoencoder for remote sensing data gapfilling
 # You need to prepare a class that will have "forward" function in addition to "initialization"
@@ -33,7 +39,7 @@ class ConvNet(nn.Module):
 # Passing the prepared architecture to the optimizer class
 gapfilling_optimizer = CnnAutoencoder(input = './data/remote_sensing_gapfilling/X_train.pt',
                                       output = './data/remote_sensing_gapfilling/Y_train.pt',
-                                      cycles = 3, save_logs = True, logs_folder = './data/remote_sensing_gapfilling')
+                                      cycles = 5, save_logs = True, logs_folder = './data/remote_sensing_gapfilling')
 
 # Find the best model hyperparameters set for chosen topology
 best_solution = gapfilling_optimizer.optimize(source_nn = ConvNet,

@@ -1,6 +1,7 @@
 import os
 import torch
 from torch import jit
+import torch.utils.data as data_utils
 from miha.evolutionary import *
 
 class CnnAutoencoder:
@@ -30,8 +31,9 @@ class CnnAutoencoder:
 
         # Create temporary folder
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.tmp_path = os.path.join(dir_path, 'tmp_folder')
-        os.makedirs(self.tmp_path)
+        self.temporary_path = os.path.join(dir_path, 'tmp_folder')
+        if os.path.isdir(self.temporary_path) == False:
+            os.makedirs(self.temporary_path)
 
     def optimize(self, source_nn, source_loss, source_optimizer, source_batch_size = 32):
         """
@@ -59,11 +61,11 @@ class CnnAutoencoder:
         # Create TorchScript by tracing the computation graph with an example input
         x = torch.ones(16, 1, 2, 2)
         net_trace = jit.trace(self.init_nn, x)
-        actual_model_path = os.path.join(self.tmp_path, 'model_init.zip')
+        actual_model_path = os.path.join(self.temporary_path, 'model_init.zip')
         jit.save(net_trace, actual_model_path)
 
         # Save optimizer configuration to file
-        actual_opt_path = os.path.join(self.tmp_path, 'optimizer_init.pth')
+        actual_opt_path = os.path.join(self.temporary_path, 'optimizer_init.pth')
         torch.save({'optimizer': self.init_optimizer.state_dict()}, actual_opt_path)
 
         ######################
@@ -72,27 +74,18 @@ class CnnAutoencoder:
         for i in range(1, self.cycles + 1):
             print(f'Optimizing cycle number {i}')
 
-            # Get population by _get_population
-            # Parameters: actual_opt_path, actual_model_path, self.tmp_path
+            # Get population
+            generate_population(actual_opt_path = actual_opt_path,
+                                actual_model_path = actual_model_path,
+                                temporary_path = self.temporary_path,
+                                amount_of_individuals = 4)
 
             # Train each individual by _train_population
 
             # Calculate fitness
 
-            # Crossover by _merge_individuals
-
-
-    def _get_device(self):
-        """
-        Method for getting available devices.
-
-        """
-
-        if torch.cuda.is_available():
-            device = 'cuda:0'
-        else:
-            device = 'cpu'
-        return device
+            # Crossover
+            crossover()
 
     def _train(self, n_epochs):
         """
@@ -106,45 +99,37 @@ class CnnAutoencoder:
         x_train = torch.load(self.input)
         y_train = torch.load(self.output)
 
+        train = data_utils.TensorDataset(x_train, y_train)
+
         # Prepare data loaders
-        train_loader = torch.utils.data.DataLoader(x_train, batch_size=self.source_batch_size, num_workers=0)
-        test_loader = torch.utils.data.DataLoader(y_train, batch_size=self.source_batch_size, num_workers=0)
+        train_loader = torch.utils.data.DataLoader(train, batch_size=self.source_batch_size, num_workers=0)
 
         # Replace NN to GPU
-        device = self._get_device()
+        device = get_device()
         self.init_nn.to(device)
 
         for epoch in range(1, n_epochs + 1):
             train_loss = 0.0
 
             # Training
-            for data in train_loader:
-                # Batch with several matrices
-                images = data
+            for images, target in train_loader:
                 # Go this matrices to GPU
                 images = images.to(device)
+                target = target.to(device)
+
                 # Refresh gradients
                 self.init_optimizer.zero_grad()
 
                 # Outputs from NN
                 outputs = self.init_nn(images)
                 # Measure the difference between the actual values and the prediction
-                loss = self.init_criterion(outputs, images)
+                loss = self.init_criterion(outputs, target)
                 loss.backward()
                 self.init_optimizer.step()
-                train_loss += loss.item() * images.size(0)
+                train_loss += loss.item() * target.size(0)
 
             train_loss = train_loss / len(train_loader)
-            print('Epoch: {} \tTraining Loss: {:.3f}'.format(epoch, train_loss))
-
-    def _get_population(self, amount_of_individuals = 4):
-        """
-        Method for generating a population
-
-        :param amount_of_individuals: number of individuals required
-        """
-
-        pass
+            print('Epoch: {} \tTraining Loss: {:.2f}'.format(epoch, train_loss))
 
     def _train_population(self):
         """
@@ -154,10 +139,14 @@ class CnnAutoencoder:
 
         pass
 
-    def _merge_individuals(self):
-        """
-        Method for combining multiple models into one
+def get_device():
+    """
+    Method for getting available devices.
 
-        """
+    """
 
-        pass
+    if torch.cuda.is_available():
+        device = 'cuda:0'
+    else:
+        device = 'cpu'
+    return device
