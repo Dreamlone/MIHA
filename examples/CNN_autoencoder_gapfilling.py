@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from miha.optimizer import CnnAutoencoder
 
@@ -30,7 +31,12 @@ class ConvNet(nn.Module):
         return (out)
 
 # Passing the prepared architecture to the optimizer class
-gapfilling_optimizer = CnnAutoencoder()
+gapfilling_optimizer = CnnAutoencoder(input = './data/remote_sensing_gapfilling/X_train.pt',
+                                      output = './data/remote_sensing_gapfilling/Y_train.pt',
+                                      cycles = 2, save_logs = True, logs_folder = './data/remote_sensing_gapfilling')
 
 # Find the best model hyperparameters set for chosen topology
-best_solution = gapfilling_optimizer.optimize(ConvNet)
+best_solution = gapfilling_optimizer.optimize(source_nn = ConvNet,
+                                              source_loss = nn.MSELoss,
+                                              source_optimizer = torch.optim.Adam,
+                                              source_batch_size = 32)

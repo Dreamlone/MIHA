@@ -4,10 +4,14 @@ class NnModel:
     """
     Base class for training models and passing logs to other classes
 
+    :param input: path to the file with matrices, which are inputs for NN
+    :param output: path to the file with matrices, which are outputs for NN
     """
 
-    def __init__(self):
+    def __init__(self, input, output):
         self.train_metadata = {}
+        self.input = input
+        self.output = output
 
     def train_single_model(self):
         pass
