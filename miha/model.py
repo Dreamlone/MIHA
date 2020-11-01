@@ -1,5 +1,7 @@
 import os
 import torch
+from torch import jit
+from miha.evolutionary import *
 
 class CnnAutoencoder:
     """
@@ -26,6 +28,11 @@ class CnnAutoencoder:
                 os.makedirs(logs_folder)
             self.logs_folder = logs_folder
 
+        # Create temporary folder
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        self.tmp_path = os.path.join(dir_path, 'tmp_folder')
+        os.makedirs(self.tmp_path)
+
     def optimize(self, source_nn, source_loss, source_optimizer, source_batch_size = 32):
         """
         A method for finding the optimal set of hyperparameters for a given architecture
@@ -45,9 +52,39 @@ class CnnAutoencoder:
         # Initial train for n amount of epochs
         self._train(n_epochs = 2)
 
+        # Save model to file
+        self.init_nn.to('cpu')
+        self.init_nn.eval()
+
+        # Create TorchScript by tracing the computation graph with an example input
+        x = torch.ones(16, 1, 2, 2)
+        net_trace = jit.trace(self.init_nn, x)
+        actual_model_path = os.path.join(self.tmp_path, 'model_init.zip')
+        jit.save(net_trace, actual_model_path)
+
+        # Save optimizer configuration to file
+        actual_opt_path = os.path.join(self.tmp_path, 'optimizer_init.pth')
+        torch.save({'optimizer': self.init_optimizer.state_dict()}, actual_opt_path)
+
+        ######################
+        # Start optimization #
+        ######################
+        for i in range(1, self.cycles + 1):
+            print(f'Optimizing cycle number {i}')
+
+            # Get population by _get_population
+            # Parameters: actual_opt_path, actual_model_path, self.tmp_path
+
+            # Train each individual by _train_population
+
+            # Calculate fitness
+
+            # Crossover by _merge_individuals
+
+
     def _get_device(self):
         """
-        Method for getting available devices
+        Method for getting available devices.
 
         """
 
@@ -59,7 +96,8 @@ class CnnAutoencoder:
 
     def _train(self, n_epochs):
         """
-        Method for training a neural network in the "model" module
+        Method for training a neural network in the "model" module.
+        All actions are mutable for NN, so train work "in place".
 
         :param n_epochs: number of epochs to train
         """
@@ -88,9 +126,9 @@ class CnnAutoencoder:
                 # Refresh gradients
                 self.init_optimizer.zero_grad()
 
-                # Выход нейронной сети
+                # Outputs from NN
                 outputs = self.init_nn(images)
-                # Замеряем разницу между действительными значениями и предсказанием
+                # Measure the difference between the actual values and the prediction
                 loss = self.init_criterion(outputs, images)
                 loss.backward()
                 self.init_optimizer.step()
