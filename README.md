@@ -6,10 +6,9 @@ Optimizer for configuration of hyperparameters in neural networks
 ## Requirements
     'python>=3.7',
     'numpy',
-    'scipy',
     'cudatoolkit==10.2',
-    'torchvision',
-    'pytorch'
+    'torchvision==0.7.0',
+    'pytorch==1.6.0'
     
 
 
