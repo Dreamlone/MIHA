@@ -1,13 +1,13 @@
 import torch
 from torch import jit
 
-def generate_population(actual_opt_path, actual_model_path, temporary_path, amount_of_individuals = 4):
+def generate_population(actual_opt_path, actual_model_path, logs_path, amount_of_individuals = 4):
     """
     Method for generating a population
 
     :param actual_opt_path: path to the file with the current state of the optimizer
     :param actual_model_path: path to the file with the current state of the neural network
-    :param temporary_path: the temporary folder where are stored the trained models
+    :param logs_path: the temporary folder where are stored the trained models
     :param amount_of_individuals: number of individuals required
     """
 
