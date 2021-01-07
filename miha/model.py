@@ -7,11 +7,12 @@ from miha.evolutionary import *
 from miha.log import ModelLogger
 
 
-class CnnAutoencoder:
+class NNOptimizer:
     """
-    Base class for configuring hyperparameters and training the neural network architecture
-    convolutional autoencoder
+    Base class for configuring hyperparameters and training the neural network
 
+    :param nn_type: neural network architecture for optimization
+    (available types 'FNN', 'CNN', 'RNN', 'LSTM', 'AE')
     :param input: path to the file with matrices, which are inputs for NN
     :param output: path to the file with matrices, which are outputs for NN
     :param cycles: number of cycles to optimize
@@ -22,8 +23,9 @@ class CnnAutoencoder:
     :param logs_folder: path to th folder where do we need to save logs, ignore when save_logs = False
     """
 
-    def __init__(self, input, output, cycles=2, population_size=4,
+    def __init__(self, nn_type, input, output, cycles=2, population_size=4,
                  epoch_per_cycle=2, save_logs=False, logs_folder=None):
+        self.nn_type = nn_type
         self.input = input
         self.output = output
         self.cycles = cycles
@@ -32,6 +34,7 @@ class CnnAutoencoder:
 
         # The number of epochs required for initial training up to
         # the population generation stage
+        # TODO determine amount of init epochs - const(2? 10? 50?) or variable
         self.init_epochs = 3
 
         self.epoch_per_cycle = epoch_per_cycle
@@ -48,7 +51,8 @@ class CnnAutoencoder:
             os.makedirs(self.logs_folder)
 
         # Init logger with log folder (where to save models)
-        self.logger = ModelLogger(logs_path=self.logs_folder)
+        self.logger = ModelLogger(logs_path=self.logs_folder,
+                                  nn_type=self.nn_type)
 
     def optimize(self, source_nn, source_loss, source_optimizer, source_batch_size = 32):
         """
@@ -58,6 +62,8 @@ class CnnAutoencoder:
         :param source_loss: initial loss function
         :param source_optimizer: initial optimizer
         :param source_batch_size: batch size
+
+        :return : словарь с
         """
 
         print('Init cycle')
@@ -70,7 +76,6 @@ class CnnAutoencoder:
         self.current_batch_size = source_batch_size
 
         # Initial train for n amount of epochs
-        # TODO determine amount of init epochs - const(2? 10? 50?) or variable
         self._train(n_epochs = self.init_epochs)
 
         ######################
@@ -87,15 +92,20 @@ class CnnAutoencoder:
             # Get population - list [NN_1, NN_2, ..., NN_self.population_size]
             nns_list = generate_population(actual_opt_path=actual_opt_path,
                                            actual_model_path=actual_model_path,
-                                           logs_path=self.logs_folder,
                                            amount_of_individuals=self.population_size)
 
             # Train each individual by _train_population
+            self._train_population(nns_list)
 
-            # Calculate fitness
+            # Calculate fitness score for every NN in nns_list
+            fitness_list = eval_fitness(nns_list)
 
-            # Crossover
-            crossover()
+            # Crossover -> get NN to continue training
+            updated_model = crossover(fitness_list, nns_list)
+            self.current_nn = updated_model['model']
+            self.current_criterion = updated_model['loss']
+            self.current_optimizer = updated_model['optimizer']
+            self.current_batch_size = updated_model['batch']
 
             self._train(n_epochs=self.epoch_per_cycle)
         #######################
@@ -107,6 +117,9 @@ class CnnAutoencoder:
         if self.save_logs == False:
             # Deleting the temporary directory
             shutil.rmtree(self.logs_folder, ignore_errors=True)
+
+        return {'model':self.current_nn, 'loss': self.current_criterion,
+                'optimizer':self.current_optimizer, 'batch': self.current_batch_size}
 
     def _train(self, n_epochs):
         """
@@ -133,16 +146,16 @@ class CnnAutoencoder:
             train_loss = 0.0
 
             # Training
-            for images, target in train_loader:
+            for arrays, target in train_loader:
                 # Go this matrices to GPU
-                images = images.to(device)
+                arrays = arrays.to(device)
                 target = target.to(device)
 
                 # Refresh gradients
                 self.current_optimizer.zero_grad()
 
                 # Outputs from NN
-                outputs = self.current_nn(images)
+                outputs = self.current_nn(arrays)
                 # Measure the difference between the actual values and the prediction
                 loss = self.current_criterion(outputs, target)
                 loss.backward()
@@ -166,10 +179,11 @@ class CnnAutoencoder:
 
             print('Epoch: {} \tTraining Loss: {:.2f}'.format(epoch, train_loss))
 
-    def _train_population(self):
+    def _train_population(self, nns_list):
         """
         Method for training a population (several NN)
 
+        :param nns_list: list with neural network models
         """
 
         pass

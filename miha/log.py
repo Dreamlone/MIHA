@@ -13,13 +13,15 @@ class ModelLogger:
     A class that stores the history of neural network training in the process
     of evolution and perform operations to save models, output messages with logs
 
+    :param nn_type: neural network architecture for optimization
+    (available types 'FNN', 'CNN', 'RNN', 'LSTM', 'AE')
     :param logs_path: path to the folder where saved versions of the neural network are stored
     """
 
-    def __init__(self, logs_path: str):
+    def __init__(self, logs_path: str,  nn_type: str):
         self.logs_path = logs_path
+        self.nn_type = nn_type
 
-        self.hall_of_fame = {}
         self.train_losses = []
         self.all_cycles = []
         self.all_epochs = []
@@ -106,10 +108,17 @@ class ModelLogger:
         :param model_pth: name of the file to save the optimizer to
         """
 
+        # Determine input dimensions for data
+        for index, param_tensor in enumerate(self.nn_model.state_dict()):
+            if index == 0:
+                x = self.nn_model.state_dict()[param_tensor].size()
+                x = list(x)
+                example_inputs = torch.ones(x)
+            else:
+                pass
+
         # Create TorchScript by tracing the computation graph with an example input
-        # TODO make x adaptive
-        x = torch.ones(16, 1, 2, 2)
-        net_trace = jit.trace(self.nn_model, x)
+        net_trace = jit.trace(self.nn_model, example_inputs)
         actual_model_path = os.path.join(self.logs_path, model_zip)
         jit.save(net_trace, actual_model_path)
 
@@ -122,14 +131,18 @@ class ModelLogger:
         self.actual_opt_path = actual_opt_path
 
     def get_actual_opt_path(self) -> str:
+        """
+        The method returns the path to the current version of the optimizer
+        """
         return(self.actual_opt_path)
 
     def get_actual_model_path(self) -> str:
+        """
+        The method returns the path to the current version of the neural network
+        """
         return(self.actual_model_path)
 
     @staticmethod
     def delete_nn(model_to_remove):
         # TODO Add ability to remove models from logs
-        pass
-
-
+        raise NotImplementedError("This functionality not implemented yet")
