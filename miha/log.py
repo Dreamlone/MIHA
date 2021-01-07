@@ -19,7 +19,11 @@ class ModelLogger:
     """
 
     def __init__(self, logs_path: str,  nn_type: str):
-        self.logs_path = logs_path
+        self.logs_path = os.path.join(logs_path,'model')
+        # Create folder if it doesnt exists
+        if os.path.isdir(self.logs_path) == False:
+            os.makedirs(self.logs_path)
+
         self.nn_type = nn_type
 
         self.train_losses = []
@@ -69,7 +73,18 @@ class ModelLogger:
                 self.save_nn(model_zip, model_pth)
             else:
                 pass
-        # If there is cycle optimization started
+        elif current_cycle == -1:
+            if is_last_epoch == True:
+                model_zip = 'model_final.zip'
+                model_pth = 'optimizer_final.pth'
+                model_path = [os.path.join(self.logs_path, model_zip),
+                              os.path.join(self.logs_path, model_pth)]
+
+                # Save NN model
+                self.save_nn(model_zip, model_pth)
+            else:
+                pass
+        # If there is cycle optimization
         else:
             if is_last_epoch == True:
                 model_zip = ''.join(('model_', str(current_cycle), '.zip'))
@@ -146,3 +161,34 @@ class ModelLogger:
     def delete_nn(model_to_remove):
         # TODO Add ability to remove models from logs
         raise NotImplementedError("This functionality not implemented yet")
+
+
+class EALogger:
+    """
+    A class that
+
+    :param nn_type: neural network architecture for optimization
+    (available types 'FNN', 'CNN', 'RNN', 'LSTM', 'AE')
+    :param logs_path: path to the folder where saved versions of the neural network are stored
+    """
+
+    def __init__(self, logs_path: str,  nn_type: str):
+        self.logs_path = os.path.join(logs_path, 'ea')
+        # Create folder if it doesnt exists
+        if os.path.isdir(self.logs_path) == False:
+            os.makedirs(self.logs_path)
+
+        self.nn_type = nn_type
+
+
+def get_device():
+    """
+    Method for getting available devices.
+
+    """
+
+    if torch.cuda.is_available():
+        device = 'cuda:0'
+    else:
+        device = 'cpu'
+    return device

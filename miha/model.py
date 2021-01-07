@@ -3,8 +3,10 @@ import shutil
 import torch
 from torch import jit
 import torch.utils.data as data_utils
+from copy import deepcopy
+
 from miha.evolutionary import *
-from miha.log import ModelLogger
+from miha.log import ModelLogger, get_device
 
 
 class NNOptimizer:
@@ -50,8 +52,12 @@ class NNOptimizer:
         if os.path.isdir(self.logs_folder) == False:
             os.makedirs(self.logs_folder)
 
-        # Init logger with log folder (where to save models)
+        # Init model logger with log folder (where to save models)
         self.logger = ModelLogger(logs_path=self.logs_folder,
+                                  nn_type=self.nn_type)
+
+        # Init ea logger
+        self.ea_logger = EALogger(logs_path=self.logs_folder,
                                   nn_type=self.nn_type)
 
     def optimize(self, source_nn, source_loss, source_optimizer, source_batch_size = 32):
@@ -63,7 +69,11 @@ class NNOptimizer:
         :param source_optimizer: initial optimizer
         :param source_batch_size: batch size
 
-        :return : словарь с
+        :return : dictionary with obtained model
+            - model: neural network model
+            - loss: loss function
+            - optimizer: obtained optimizer
+            - batch: batch size
         """
 
         print('Init cycle')
@@ -85,13 +95,12 @@ class NNOptimizer:
             self.current_cycle = i
             print(f'\nOptimizing cycle number {self.current_cycle}')
 
-            # Get paths to the best NN model at the current moment
-            actual_opt_path = self.logger.get_actual_opt_path()
-            actual_model_path = self.logger.get_actual_model_path()
-
             # Get population - list [NN_1, NN_2, ..., NN_self.population_size]
-            nns_list = generate_population(actual_opt_path=actual_opt_path,
-                                           actual_model_path=actual_model_path,
+            nns_list = generate_population(nn_type=self.nn_type,
+                                           actual_model=self.current_nn,
+                                           actual_criterion=self.current_criterion,
+                                           actual_optimizer=self.current_optimizer,
+                                           actual_batch_size=self.current_batch_size,
                                            amount_of_individuals=self.population_size)
 
             # Train each individual by _train_population
@@ -102,15 +111,21 @@ class NNOptimizer:
 
             # Crossover -> get NN to continue training
             updated_model = crossover(fitness_list, nns_list)
+            # TODO implement crossover in right way
             self.current_nn = updated_model['model']
-            self.current_criterion = updated_model['loss']
-            self.current_optimizer = updated_model['optimizer']
-            self.current_batch_size = updated_model['batch']
+            # self.current_criterion = updated_model['loss']
+            # self.current_optimizer = updated_model['optimizer']
+            # self.current_batch_size = updated_model['batch']
 
             self._train(n_epochs=self.epoch_per_cycle)
         #######################
         # Finish optimization #
         #######################
+
+        # Finish training model with final training set of epochs
+        print('\nFinal cycle')
+        self.current_cycle = -1
+        self._train(n_epochs=self.init_epochs)
 
         # Plot training
         self.logger.plot_scores()
@@ -140,6 +155,7 @@ class NNOptimizer:
 
         # Replace NN to GPU
         device = get_device()
+        self.current_nn.train(mode=True)
         self.current_nn.to(device)
 
         for epoch in range(1, n_epochs + 1):
@@ -168,8 +184,8 @@ class NNOptimizer:
             if epoch == n_epochs:
                 is_last_epoch = True
                 # Update model in logger
-                self.logger.set_current_model(nn_model=self.current_nn,
-                                              nn_optimizer=self.current_optimizer)
+                self.logger.set_current_model(nn_model=deepcopy(self.current_nn),
+                                              nn_optimizer=deepcopy(self.current_optimizer))
             else:
                 is_last_epoch = False
             self.logger.update_history(current_cycle=self.current_cycle,
@@ -187,15 +203,3 @@ class NNOptimizer:
         """
 
         pass
-
-def get_device():
-    """
-    Method for getting available devices.
-
-    """
-
-    if torch.cuda.is_available():
-        device = 'cuda:0'
-    else:
-        device = 'cpu'
-    return device
