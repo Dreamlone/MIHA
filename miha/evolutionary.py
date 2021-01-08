@@ -33,8 +33,8 @@ class EARepresentation:
         return 0
 
 
-def generate_population(nn_type, actual_model_path, actual_opt_path,
-                        actual_criterion, actual_batch_size, amount_of_individuals):
+def generate_population(nn_type: str, actual_model_path: str, actual_opt_path: str,
+                        actual_criterion, actual_batch_size, amount_of_individuals: int) -> list:
     """
     Method for generating a population
 
@@ -80,9 +80,36 @@ def generate_population(nn_type, actual_model_path, actual_opt_path,
     return nns_list
 
 
-def eval_fitness(nns_list):
+def eval_fitness(metadata: dict) -> list:
+    """
+    Function for evaluating the progress of multiple neural networks during training
 
-    fitness_list = [0, 0, 0, 0]
+    :param metadata: metadata about the population for a particular cycle in the
+    form of a dictionary
+        - key: model - index of the model (neural network)
+        - value: list [a, b], where a - list with loss scores [....] and b -
+        verbal description of what replacement was made in the neural network
+        during mutation
+
+    :return fitness_list: list with fitness scores
+    """
+
+    # Get metadata f
+    models = list(metadata.keys())
+    models.sort()
+
+    # Calculate loss diff per epoch
+    fitness_list = []
+    for model in models:
+        model_info = metadata.get(model)
+
+        # Scores array with train losses
+        scores_arr = model_info[0]
+
+        # Calculate efficiency of NN
+        fitness = scores_arr[0]-scores_arr[-1]
+        fitness_list.append(fitness)
+
     return fitness_list
 
 

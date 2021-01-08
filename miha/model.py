@@ -23,11 +23,13 @@ class NNOptimizer:
     :param epoch_per_cycle: how many epochs should the neural network be trained
     after the crossover in each cycle
     :param save_logs: do we need to save logs
-    :param logs_folder: path to th folder where do we need to save logs, ignore when save_logs = False
+    :param logs_folder: path to th folder where do we need to save logs, ignore
+    when save_logs = False
     """
 
-    def __init__(self, nn_type, input, output, cycles=2, population_size=4,
-                 epoch_per_cycle=2, save_logs=False, logs_folder=None):
+    def __init__(self, nn_type: str, input: str, output: str, cycles: int = 2,
+                 population_size: int = 4, epoch_per_cycle: int = 2,
+                 save_logs: bool = False, logs_folder: str = None):
         self.nn_type = nn_type
         self.input = input
         self.output = output
@@ -57,11 +59,15 @@ class NNOptimizer:
         self.logger = ModelLogger(logs_path=self.logs_folder,
                                   nn_type=self.nn_type)
 
-        # Init ea logger
+        # Init logger for population of models and evolutionary algorithm
         self.pop_logger = PopulationLogger(logs_path=self.logs_folder,
-                                           nn_type=self.nn_type)
+                                           nn_type=self.nn_type,
+                                           pop_size=self.population_size,
+                                           cycles=self.cycles,
+                                           epoch_per_cycle=self.epoch_per_cycle)
 
-    def optimize(self, source_nn, source_loss, source_optimizer, source_batch_size = 32):
+    def optimize(self, source_nn, source_loss, source_optimizer,
+                 source_batch_size: int = 32) -> dict:
         """
         A method for finding the optimal set of hyperparameters for a given architecture
 
@@ -112,7 +118,10 @@ class NNOptimizer:
             self._train_population(nns_list)
 
             # Calculate fitness score for every NN in nns_list
-            # fitness_list = eval_fitness(nns_list)
+            pop_cycle_metadata = self.pop_logger.get_metadata(cycle=self.current_cycle)
+            fitness_list = eval_fitness(metadata=pop_cycle_metadata)
+
+            print(f'Fitness list: {fitness_list}')
 
             # Crossover -> get NN to continue training
             # updated_model = crossover(fitness_list, nns_list)
@@ -141,7 +150,7 @@ class NNOptimizer:
         return {'model':self.current_nn, 'loss': self.current_criterion,
                 'optimizer':self.current_optimizer, 'batch': self.current_batch_size}
 
-    def _train(self, n_epochs):
+    def _train(self, n_epochs: int) -> None:
         """
         Method for training a neural network in the "model" module.
         All actions are mutable for NN, so train work "in place".
@@ -190,8 +199,8 @@ class NNOptimizer:
             if epoch == n_epochs:
                 is_last_epoch = True
                 # Update model in logger
-                self.logger.set_current_model(nn_model=deepcopy(self.current_nn),
-                                              nn_optimizer=deepcopy(self.current_optimizer))
+                self.logger.set_current_model(nn_model=self.current_nn,
+                                              nn_optimizer=self.current_optimizer)
             else:
                 is_last_epoch = False
             self.logger.update_history(current_cycle=self.current_cycle,
@@ -201,11 +210,15 @@ class NNOptimizer:
 
             print('Epoch: {} \tTraining Loss: {:.2f}'.format(epoch, train_loss))
 
-    def _train_population(self, nns_list):
+    def _train_population(self, nns_list: list) -> None:
         """
         Method for training a population (several NN)
 
-        :param nns_list: list with neural network models
+        :param nns_list: list with neural network models as dict, where
+            - model: neural network model
+            - loss: loss function
+            - optimizer: obtained optimizer
+            - batch: batch size
         """
 
         # Train model on GPU
@@ -251,6 +264,16 @@ class NNOptimizer:
 
                 train_loss = train_loss / len(train_loader)
 
-                print(f'Model number {model_number}, iteration - {epoch}, score - {train_loss}')
+                # Log scores after model training
+                self.pop_logger.collect_scores(model_number=model_number,
+                                               current_cycle=self.current_cycle,
+                                               current_epoch=epoch,
+                                               model_score=train_loss)
 
-
+            # Save trained model
+            self.pop_logger.save_nn(current_cycle=self.current_cycle,
+                                    model_number=model_number,
+                                    nn_model=model_to_train,
+                                    nn_optimizer=optimizer_to_train,
+                                    nn_loss=loss_to_train,
+                                    nn_batch=batch_to_train)

@@ -1,12 +1,12 @@
 import os
-from matplotlib import pyplot as plt
-from matplotlib import cm
 import torch
-from torch import jit
-import torch.utils.data as data_utils
+import json
+
 import pandas as pd
 import numpy as np
-import torch.nn as nn
+
+from torch import jit
+from matplotlib import pyplot as plt
 
 
 class ModelLogger:
@@ -175,23 +175,132 @@ class ModelLogger:
 
 class PopulationLogger:
     """
-    Класс для сопровождения процесса обучения популяции нейронных сетей
+    A class to support the training process of a population of neural networks
 
     :param nn_type: neural network architecture for optimization
     (available types 'FNN', 'CNN', 'RNN', 'LSTM', 'AE')
     :param logs_path: path to the folder where saved versions of the neural network are stored
+    :param pop_size: size of generated population
+    :param cycles: number of cycles to optimize
+    :param epoch_per_cycle: how many epochs should the neural network be trained
+    after the crossover in each cycle
     """
 
-    def __init__(self, logs_path: str,  nn_type: str):
+    def __init__(self, logs_path: str,  nn_type: str, pop_size: int, cycles: int,
+                 epoch_per_cycle: int):
         self.logs_path = os.path.join(logs_path, 'population')
         # Create folder if it doesnt exists
         if os.path.isdir(self.logs_path) == False:
             os.makedirs(self.logs_path)
 
         self.nn_type = nn_type
+        self.pop_size = pop_size
+        self.cycles = cycles
+        self.epoch_per_cycle = epoch_per_cycle
 
-    def collect_scores(self, model_number, ):
-        pass
+        # Dictionary for saving metadata
+        # With pre-defined structure
+        self.pop_metadata = {}
+
+        # Cycles start from 1, 2, 3, ...
+        for cycle in range(1, self.cycles+1):
+            self.pop_metadata.update({cycle:{}})
+
+            # Models start from 0, 1, 2 ,3, ...
+            for model_number in range(0, self.pop_size):
+                self.pop_metadata.get(cycle).update(
+                    {model_number: [np.zeros(self.epoch_per_cycle), '']})
+
+
+    def collect_scores(self, model_number: int, current_cycle: int,
+                       current_epoch: int, model_score: float) -> None:
+        """
+        Method for updating metadata during training of multiple neural networks
+        (from one population)
+
+        :param model_number: index of model (neural network) in population
+        :param current_cycle: current cycle of the evolution process
+        :param current_epoch: current epoch of the learning process
+        :param model_score: value of the metric in the training sample
+        """
+
+        # Get array with scores
+        current_cycle_dict = self.pop_metadata.get(current_cycle)
+        current_model_list = current_cycle_dict.get(model_number)
+        current_model_scores = current_model_list[0]
+
+        # Store train loss
+        current_model_scores[current_epoch-1] = model_score
+
+        # Update metadata
+        current_model_list[0] = current_model_scores
+        current_cycle_dict.update({model_number: current_model_list})
+        self.pop_metadata.update({current_cycle:current_cycle_dict})
+
+    def get_metadata(self, cycle: int) -> dict:
+        """
+        The method allow get metadata for a specific training cycle
+
+        :param cycle: current cycle of the evolution process
+
+        :return : dictionary with metadata
+        """
+
+        current_cycle_dict = self.pop_metadata.get(cycle)
+        return current_cycle_dict
+
+    def save_metadata(self, where_to_save: str) -> None:
+        """
+        This method allow save metadata in a specified folder
+
+        :param where_to_save: path to folder where "Metadata.json" file must be
+        saved
+        """
+
+        # Create folder if it doesnt exists
+        if os.path.isdir(where_to_save) == False:
+            os.makedirs(where_to_save)
+
+        # Save file as json
+        json_path = os.path.join(where_to_save, 'Metadata.json')
+        with open(json_path, 'w') as json_file:
+            json.dump(self.metadata, json_file)
+
+    def save_nn(self, current_cycle: int, model_number: int, nn_model,
+                nn_optimizer, nn_loss, nn_batch) -> None:
+        """
+        The method saves the neural network (as zip and pth files) in a special folder
+
+        :param current_cycle: current cycle of the evolution process
+        :param model_number: index of model (neural network) in population
+        :param nn_model: NN model to save
+        :param nn_optimizer: Optimizer to save
+        :param nn_loss: Loss of NN model
+        :param nn_batch: batch size
+        """
+
+        # Define archive files names
+        model_zip = ''.join((str(current_cycle),'_',str(model_number),'_model.zip'))
+        model_pth = ''.join((str(current_cycle),'_',str(model_number),'_optimizer.pth'))
+
+        # Determine input dimensions for data
+        for index, param_tensor in enumerate(nn_model.state_dict()):
+            if index == 0:
+                x = nn_model.state_dict()[param_tensor].size()
+                x = list(x)
+                example_inputs = torch.ones(x)
+            else:
+                pass
+
+        # Create TorchScript by tracing the computation graph with an example input
+        net_trace = jit.trace(nn_model, example_inputs)
+        actual_model_path = os.path.join(self.logs_path, model_zip)
+        jit.save(net_trace, actual_model_path)
+
+        # Save optimizer configuration to file
+        actual_opt_path = os.path.join(self.logs_path, model_pth)
+        torch.save({'optimizer': nn_optimizer.state_dict()}, actual_opt_path)
+
 
 def get_device():
     """
