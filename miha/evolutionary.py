@@ -1,5 +1,7 @@
-from miha.log import PopulationLogger
+from miha.log import PopulationLogger, get_device
 from copy import deepcopy, copy
+from torch import jit
+import torch
 
 
 class EARepresentation:
@@ -31,15 +33,15 @@ class EARepresentation:
         return 0
 
 
-def generate_population(nn_type, actual_model, actual_criterion,
-                        actual_optimizer, actual_batch_size, amount_of_individuals):
+def generate_population(nn_type, actual_model_path, actual_opt_path,
+                        actual_criterion, actual_batch_size, amount_of_individuals):
     """
     Method for generating a population
 
     :param nn_type: the type of NN architecture (for example: 'FNN', 'CNN', 'RNN', 'LSTM', 'AE')
-    :param actual_model: current NN model
+    :param actual_model_path: path to zip file with current NN model
+    :param actual_opt_path: path to pth optimizer of current NN model
     :param actual_criterion: loss of current NN model
-    :param actual_optimizer: optimizer of current NN model
     :param actual_batch_size: current batch size
     :param amount_of_individuals: number of individuals required
 
@@ -49,8 +51,6 @@ def generate_population(nn_type, actual_model, actual_criterion,
         - optimizer: obtained optimizer
         - batch: batch size
     """
-    actual_model.to('cpu')
-    actual_model.eval()
 
     # Define converter for EA NN model representation
     # ea_converter = EARepresentation(nn_type, actual_model, actual_criterion,
@@ -59,14 +59,23 @@ def generate_population(nn_type, actual_model, actual_criterion,
 
     nns_list = []
     for i in range(0, amount_of_individuals):
-        # Make copies for all parameters
-        net_copy = copy(actual_model)
-        criterion_copy = copy(actual_criterion)
-        optimizer_copy = copy(actual_optimizer)
-        batch_copy = copy(actual_batch_size)
+        actual_model = jit.load(actual_model_path)
+        state = torch.load(actual_opt_path)
 
-        nns_list.append({'model': net_copy, 'loss': criterion_copy,
-                         'optimizer': optimizer_copy, 'batch': batch_copy})
+        device = get_device()
+        actual_model = actual_model.to(device)
+        actual_model = actual_model.train(mode=True)
+
+        # TODO make optimizer adaptive
+        actual_optimizer = torch.optim.Adam(actual_model.parameters())
+        actual_optimizer.load_state_dict(state['optimizer'])
+
+        # Make copies for all parameters
+        criterion_copy = deepcopy(actual_criterion)
+        batch_copy = deepcopy(actual_batch_size)
+
+        nns_list.append({'model': actual_model, 'loss': criterion_copy,
+                         'optimizer': actual_optimizer, 'batch': batch_copy})
 
     return nns_list
 

@@ -2,6 +2,7 @@ import os
 import shutil
 import torch
 from torch import jit
+import torch.nn as nn
 import torch.utils.data as data_utils
 from copy import deepcopy
 
@@ -95,11 +96,15 @@ class NNOptimizer:
             self.current_cycle = i
             print(f'\nOptimizing cycle number {self.current_cycle}')
 
+            # Get actual model and optimizator path
+            actual_model_path = self.logger.get_actual_model_path()
+            actual_opt_path = self.logger.get_actual_opt_path()
+
             # Get population - list [NN_1, NN_2, ..., NN_self.population_size]
             nns_list = generate_population(nn_type=self.nn_type,
-                                           actual_model=self.current_nn,
+                                           actual_model_path=actual_model_path,
+                                           actual_opt_path=actual_opt_path,
                                            actual_criterion=self.current_criterion,
-                                           actual_optimizer=self.current_optimizer,
                                            actual_batch_size=self.current_batch_size,
                                            amount_of_individuals=self.population_size)
 
@@ -156,8 +161,8 @@ class NNOptimizer:
         # Replace NN to GPU
         device = get_device()
 
-        self.current_nn.to(device)
-        self.current_nn.train(mode=True)
+        self.current_nn = self.current_nn.to(device)
+        self.current_nn = self.current_nn.train(mode=True)
 
         for epoch in range(1, n_epochs + 1):
             train_loss = 0.0
@@ -211,9 +216,6 @@ class NNOptimizer:
             loss_to_train = nn_to_train['loss']
             optimizer_to_train = nn_to_train['optimizer']
             batch_to_train = nn_to_train['batch']
-
-            model_to_train.to(device)
-            model_to_train.train(mode=True)
 
             # Load X and Y matrices in tensors
             x_train = torch.load(self.input)

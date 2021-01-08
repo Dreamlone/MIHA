@@ -6,6 +6,7 @@ from torch import jit
 import torch.utils.data as data_utils
 import pandas as pd
 import numpy as np
+import torch.nn as nn
 
 
 class ModelLogger:
@@ -42,7 +43,7 @@ class ModelLogger:
         self.nn_optimizer = nn_optimizer
 
         # Transfer NN model to CPU
-        self.nn_model.to('cpu')
+        self.nn_model = self.nn_model.to('cpu')
         self.nn_model.eval()
 
     def update_history(self, current_cycle: int, current_epoch: int,
@@ -70,7 +71,7 @@ class ModelLogger:
                               os.path.join(self.logs_path, model_pth)]
 
                 # Save NN model
-                self.save_nn(model_zip, model_pth)
+                self._save_nn(model_zip, model_pth)
             else:
                 pass
         elif current_cycle == -1:
@@ -81,7 +82,7 @@ class ModelLogger:
                               os.path.join(self.logs_path, model_pth)]
 
                 # Save NN model
-                self.save_nn(model_zip, model_pth)
+                self._save_nn(model_zip, model_pth)
             else:
                 pass
         # If there is cycle optimization
@@ -93,7 +94,7 @@ class ModelLogger:
                               os.path.join(self.logs_path, model_pth)]
 
                 # Save NN model
-                self.save_nn(model_zip, model_pth)
+                self._save_nn(model_zip, model_pth)
             else:
                 pass
 
@@ -124,7 +125,7 @@ class ModelLogger:
         plt.grid()
         plt.show()
 
-    def save_nn(self, model_zip: str, model_pth: str) -> None:
+    def _save_nn(self, model_zip: str, model_pth: str) -> None:
         """
         The method saves the neural network to the specified folder
 
