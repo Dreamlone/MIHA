@@ -1,7 +1,6 @@
-import torch
-from torch import jit
-from miha.log import EALogger, get_device
-from copy import copy
+from miha.log import PopulationLogger
+from copy import deepcopy, copy
+
 
 class EARepresentation:
     """
@@ -44,20 +43,30 @@ def generate_population(nn_type, actual_model, actual_criterion,
     :param actual_batch_size: current batch size
     :param amount_of_individuals: number of individuals required
 
-    :return nns_list: list with neural network models
+    :return nns_list: list with neural network models as dict, where
+        - model: neural network model
+        - loss: loss function
+        - optimizer: obtained optimizer
+        - batch: batch size
     """
     actual_model.to('cpu')
     actual_model.eval()
 
     # Define converter for EA NN model representation
-    ea_converter = EARepresentation(nn_type, actual_model, actual_criterion,
-                                    actual_optimizer, actual_batch_size)
-    actual_model_ea_form = ea_converter.convert_to_genotype()
+    # ea_converter = EARepresentation(nn_type, actual_model, actual_criterion,
+    #                                 actual_optimizer, actual_batch_size)
+    # actual_model_ea_form = ea_converter.convert_to_genotype()
 
     nns_list = []
     for i in range(0, amount_of_individuals):
+        # Make copies for all parameters
         net_copy = copy(actual_model)
-        nns_list.append(net_copy)
+        criterion_copy = copy(actual_criterion)
+        optimizer_copy = copy(actual_optimizer)
+        batch_copy = copy(actual_batch_size)
+
+        nns_list.append({'model': net_copy, 'loss': criterion_copy,
+                         'optimizer': optimizer_copy, 'batch': batch_copy})
 
     return nns_list
 
@@ -70,5 +79,5 @@ def eval_fitness(nns_list):
 
 def crossover(fitness_list, nns_list):
 
-    nn_model = {'model': nns_list[0], 'loss': [0], 'optimizer': [0], 'batch': [0]}
+    nn_model = nns_list[0]
     return nn_model

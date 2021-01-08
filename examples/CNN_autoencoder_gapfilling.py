@@ -23,7 +23,6 @@ class ConvNet(nn.Module):
         self.layer3 = nn.Sequential(nn.Conv2d(32, 16, kernel_size=2, stride=1, padding=1),
                                     nn.ReLU(),
                                     nn.Upsample(scale_factor=0.99, mode='nearest'))
-        self.drop_out = nn.Dropout(0.1)
         self.layer4 = nn.Sequential(nn.Conv2d(16, 1, kernel_size=2, stride=1, padding=1),
                                     nn.ReLU(),
                                     nn.Upsample(scale_factor=1.97, mode='bilinear'))
@@ -32,16 +31,15 @@ class ConvNet(nn.Module):
         out = self.layer1(x)
         out = self.layer2(out)
         out = self.layer3(out)
-        out = self.drop_out(out)
         out = self.layer4(out)
-        return (out)
+        return out
 
 # Passing the prepared architecture to the optimizer class
 gapfilling_optimizer = NNOptimizer(nn_type = 'AE',
                                    input = './data/remote_sensing_gapfilling/X_train.pt',
                                    output = './data/remote_sensing_gapfilling/Y_train.pt',
-                                   cycles = 2,
-                                   population_size = 4,
+                                   cycles = 1,
+                                   population_size = 2,
                                    epoch_per_cycle = 2,
                                    save_logs = True,
                                    logs_folder = './data/remote_sensing_gapfilling/logs')

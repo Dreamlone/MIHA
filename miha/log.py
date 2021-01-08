@@ -109,6 +109,15 @@ class ModelLogger:
                            'Epoch': self.all_epochs,
                            'Index': np.arange(0, len(self.train_losses))})
 
+        # Plot cycle borders
+        np_cycles = np.unique(np.array(self.all_cycles))
+        for cycle in np_cycles:
+            local_df = df[df['Cycle'] == cycle]
+
+            plt.plot([min(local_df['Index']),min(local_df['Index'])],
+                     [min(df['Scores']), max(df['Scores'])],
+                     c='black', alpha=0.5)
+
         plt.plot(df['Index'], df['Scores'], '-ok', c='blue', alpha=0.8)
         plt.ylabel('Train loss', fontsize=15)
         plt.xlabel('Step', fontsize=15)
@@ -163,9 +172,9 @@ class ModelLogger:
         raise NotImplementedError("This functionality not implemented yet")
 
 
-class EALogger:
+class PopulationLogger:
     """
-    A class that
+    Класс для сопровождения процесса обучения популяции нейронных сетей
 
     :param nn_type: neural network architecture for optimization
     (available types 'FNN', 'CNN', 'RNN', 'LSTM', 'AE')
@@ -173,13 +182,15 @@ class EALogger:
     """
 
     def __init__(self, logs_path: str,  nn_type: str):
-        self.logs_path = os.path.join(logs_path, 'ea')
+        self.logs_path = os.path.join(logs_path, 'population')
         # Create folder if it doesnt exists
         if os.path.isdir(self.logs_path) == False:
             os.makedirs(self.logs_path)
 
         self.nn_type = nn_type
 
+    def collect_scores(self, model_number, ):
+        pass
 
 def get_device():
     """

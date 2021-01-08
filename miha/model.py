@@ -6,7 +6,7 @@ import torch.utils.data as data_utils
 from copy import deepcopy
 
 from miha.evolutionary import *
-from miha.log import ModelLogger, get_device
+from miha.log import ModelLogger, PopulationLogger, get_device
 
 
 class NNOptimizer:
@@ -57,8 +57,8 @@ class NNOptimizer:
                                   nn_type=self.nn_type)
 
         # Init ea logger
-        self.ea_logger = EALogger(logs_path=self.logs_folder,
-                                  nn_type=self.nn_type)
+        self.pop_logger = PopulationLogger(logs_path=self.logs_folder,
+                                           nn_type=self.nn_type)
 
     def optimize(self, source_nn, source_loss, source_optimizer, source_batch_size = 32):
         """
@@ -107,15 +107,15 @@ class NNOptimizer:
             self._train_population(nns_list)
 
             # Calculate fitness score for every NN in nns_list
-            fitness_list = eval_fitness(nns_list)
+            # fitness_list = eval_fitness(nns_list)
 
             # Crossover -> get NN to continue training
-            updated_model = crossover(fitness_list, nns_list)
+            # updated_model = crossover(fitness_list, nns_list)
             # TODO implement crossover in right way
-            self.current_nn = updated_model['model']
-            # self.current_criterion = updated_model['loss']
-            # self.current_optimizer = updated_model['optimizer']
-            # self.current_batch_size = updated_model['batch']
+            self.current_nn = nns_list[0]['model']
+            self.current_criterion = nns_list[0]['loss']
+            self.current_optimizer = nns_list[0]['optimizer']
+            self.current_batch_size = nns_list[0]['batch']
 
             self._train(n_epochs=self.epoch_per_cycle)
         #######################
@@ -155,8 +155,9 @@ class NNOptimizer:
 
         # Replace NN to GPU
         device = get_device()
-        self.current_nn.train(mode=True)
+
         self.current_nn.to(device)
+        self.current_nn.train(mode=True)
 
         for epoch in range(1, n_epochs + 1):
             train_loss = 0.0
@@ -202,4 +203,52 @@ class NNOptimizer:
         :param nns_list: list with neural network models
         """
 
-        pass
+        # Train model on GPU
+        device = get_device()
+
+        for model_number, nn_to_train in enumerate(nns_list):
+            model_to_train = nn_to_train['model']
+            loss_to_train = nn_to_train['loss']
+            optimizer_to_train = nn_to_train['optimizer']
+            batch_to_train = nn_to_train['batch']
+
+            model_to_train.to(device)
+            model_to_train.train(mode=True)
+
+            # Load X and Y matrices in tensors
+            x_train = torch.load(self.input)
+            y_train = torch.load(self.output)
+
+            train = data_utils.TensorDataset(x_train, y_train)
+
+            # Prepare data loaders
+            train_loader = torch.utils.data.DataLoader(train,
+                                                       batch_size=batch_to_train,
+                                                       num_workers=0)
+
+            for epoch in range(1, self.epoch_per_cycle + 1):
+                train_loss = 0.0
+
+                # Training
+                for arrays, target in train_loader:
+                    # Go this matrices to GPU
+                    arrays = arrays.to(device)
+                    target = target.to(device)
+
+                    # Refresh gradients
+                    optimizer_to_train.zero_grad()
+
+                    # Outputs from NN
+                    outputs = model_to_train(arrays)
+
+                    # Measure the difference between the actual values and the prediction
+                    loss = loss_to_train(outputs, target)
+                    loss.backward()
+                    optimizer_to_train.step()
+                    train_loss += loss.item() * target.size(0)
+
+                train_loss = train_loss / len(train_loader)
+
+                print(f'Model number {model_number}, iteration - {epoch}, score - {train_loss}')
+
+
