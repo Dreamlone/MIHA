@@ -10,7 +10,13 @@ Optimizer for configuration of hyperparameters in neural networks
     'torchvision==0.7.0',
     'pytorch==1.6.0'
     
+## Documentation
 
+(in progress)
+
+* Optimizer
+* [Logs](https://github.com/Dreamlone/MIHA/blob/main/docs/logs.md)
+* Evolution algorithm
 
 ## Contacts
 
