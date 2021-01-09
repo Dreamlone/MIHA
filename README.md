@@ -11,7 +11,7 @@ Optimizer for configuration of hyperparameters in neural networks.
 >
 ## The main concept
 
-# ![main_concept.png](https://raw.githubusercontent.com/Dreamlone/MIHA/main/images/main_concept.png)
+![main_concept.png](https://raw.githubusercontent.com/Dreamlone/MIHA/main/images/main_concept.png)
 
 ## Requirements
     'python>=3.7',
