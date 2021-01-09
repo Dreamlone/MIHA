@@ -132,12 +132,11 @@ class NNOptimizer:
             print(f'Fitness list: {fitness_list}')
 
             # Crossover -> get NN to continue training
-            # updated_model = crossover(fitness_list, nns_list)
-            # TODO implement crossover in right way
-            self.current_nn = nns_list[0]['model']
-            self.current_criterion = nns_list[0]['loss']
-            self.current_optimizer = nns_list[0]['optimizer']
-            self.current_batch_size = nns_list[0]['batch']
+            updated_model = crossover(fitness_list, nns_list)
+            self.current_nn = updated_model['model']
+            self.current_criterion = updated_model['loss']
+            self.current_optimizer = updated_model['optimizer']
+            self.current_batch_size = updated_model['batch']
 
             self._train(n_epochs=self.fixing_epochs)
         #######################

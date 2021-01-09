@@ -42,7 +42,7 @@ gapfilling_optimizer = NNOptimizer(nn_type = 'AE',
                                    cycles = 2,
                                    population_size = 2,
                                    epoch_per_cycle = 4,
-                                   fixing_epochs = 3,
+                                   fixing_epochs = 4,
                                    save_logs = True,
                                    logs_folder = './data/remote_sensing_gapfilling/logs')
 

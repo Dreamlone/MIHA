@@ -1,5 +1,6 @@
 from miha.log import get_device
-from copy import deepcopy, copy
+import numpy as np
+from copy import deepcopy
 from torch import jit
 import torch
 import random
@@ -64,6 +65,7 @@ class Mutator:
         return model_dict, description
 
     def change_layer_activations(self):
+
         model_dict = {'model': self.model, 'loss': self.criterion,
                       'optimizer': self.optimizer, 'batch': self.batch_size}
         description = 'change layer activation functions'
@@ -174,7 +176,7 @@ def generate_population(nn_type: str, task: str, actual_model_path: str, actual_
                      'change_optimizer']
 
         random_operator = random.choice(operators)
-        # TODO remove it ->
+        # TODO remove line below after finishing ->
         random_operator = 'change_layer_activations'
         if random_operator == 'change_batch_size':
             mutated_model, change = mut_operator.change_batch_size()
@@ -227,6 +229,17 @@ def eval_fitness(metadata: dict) -> list:
 
 
 def crossover(fitness_list, nns_list):
+    """
+    For now it returns only 1 best model without crossover (only selection)
+    TODO implement crossover operator in right way
+    """
 
-    nn_model = nns_list[0]
+    # If there is only 1 model in population
+    if len(fitness_list) == 1:
+        nn_model = nns_list[0]
+    else:
+        # Selection: choose 2 the fittest models
+        fitness_list = np.array(fitness_list)
+        best_ids = np.argmax(fitness_list)
+        nn_model = nns_list[best_ids]
     return nn_model
