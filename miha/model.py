@@ -23,6 +23,8 @@ class NNOptimizer:
     :param population_size: number of neural networks at the population generation stage
     :param epoch_per_cycle: how many epochs should the neural network be trained
     after the crossover in each cycle
+    :param fixing_epochs: how many epochs should a single model be trained in
+    one cycle after crossover
     :param save_logs: do we need to save logs
     :param logs_folder: path to th folder where do we need to save logs, ignore
     when save_logs = False
@@ -30,7 +32,7 @@ class NNOptimizer:
 
     def __init__(self, nn_type: str, task: str, input: str, output: str,
                  cycles: int = 2, population_size: int = 4, epoch_per_cycle: int = 2,
-                 save_logs: bool = False, logs_folder: str = None):
+                 fixing_epochs: int = 4, save_logs: bool = False, logs_folder: str = None):
         self.nn_type = nn_type
         self.task = task
         self.input = input
@@ -45,6 +47,7 @@ class NNOptimizer:
         self.init_epochs = 3
 
         self.epoch_per_cycle = epoch_per_cycle
+        self.fixing_epochs = fixing_epochs
 
         if self.save_logs == True:
             self.logs_folder = logs_folder
@@ -95,7 +98,7 @@ class NNOptimizer:
         self.current_batch_size = source_batch_size
 
         # Initial train for n amount of epochs
-        self._train(n_epochs = self.init_epochs)
+        self._train(n_epochs=self.init_epochs)
 
         ######################
         # Start optimization #
@@ -136,7 +139,7 @@ class NNOptimizer:
             self.current_optimizer = nns_list[0]['optimizer']
             self.current_batch_size = nns_list[0]['batch']
 
-            self._train(n_epochs=self.epoch_per_cycle)
+            self._train(n_epochs=self.fixing_epochs)
         #######################
         # Finish optimization #
         #######################
