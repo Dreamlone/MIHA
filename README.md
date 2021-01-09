@@ -1,7 +1,17 @@
 # ![miha_logo.png](https://raw.githubusercontent.com/Dreamlone/MIHA/main/images/logo.png)
 
 # MIHA
-Optimizer for configuration of hyperparameters in neural networks
+Optimizer for configuration of hyperparameters in neural networks. 
+
+> What does this library do? - Module can optimize hyperparameters of a neural network for a pre-defined architecture.
+
+> What deep learning libraries can this module work with? - PyTorch.
+
+> What algorithm is used for optimization? - An evolutionary algorithm with mutation and crossover operators is used. The neural network is continuously trained in the process of evolution.
+>
+## The main concept
+
+# ![miha_logo.png](https://raw.githubusercontent.com/Dreamlone/MIHA/main/images/main_concept.png)
 
 ## Requirements
     'python>=3.7',
@@ -12,11 +22,17 @@ Optimizer for configuration of hyperparameters in neural networks
     
 ## Documentation
 
-(in progress)
+Description of the submodules:
+* model
+* [log](https://github.com/Dreamlone/MIHA/blob/main/docs/logs.md)
+* evolutionary
 
-* Optimizer
-* [Logs](https://github.com/Dreamlone/MIHA/blob/main/docs/logs.md)
-* Evolution algorithm
+## How to use
+
+How to run the algorithm can be seen in the examples:
+* [Remote sensing gap-filling example (CNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/CNN_autoencoder_gapfilling.py)
+* Prediction of water levels (FNN) (in progress)
+* Time series forecasting (LSTM) (in progress)
 
 ## Contacts
 
