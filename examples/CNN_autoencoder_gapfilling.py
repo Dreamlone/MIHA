@@ -36,9 +36,10 @@ class ConvNet(nn.Module):
 
 # Passing the prepared architecture to the optimizer class
 gapfilling_optimizer = NNOptimizer(nn_type = 'AE',
+                                   task='regression',
                                    input = './data/remote_sensing_gapfilling/X_train.pt',
                                    output = './data/remote_sensing_gapfilling/Y_train.pt',
-                                   cycles = 1,
+                                   cycles = 2,
                                    population_size = 2,
                                    epoch_per_cycle = 4,
                                    save_logs = True,

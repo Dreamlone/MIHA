@@ -16,6 +16,7 @@ class NNOptimizer:
 
     :param nn_type: neural network architecture for optimization
     (available types 'FNN', 'CNN', 'RNN', 'LSTM', 'AE')
+    :param task: solving task ('regression' or 'classification')
     :param input: path to the file with matrices, which are inputs for NN
     :param output: path to the file with matrices, which are outputs for NN
     :param cycles: number of cycles to optimize
@@ -27,10 +28,11 @@ class NNOptimizer:
     when save_logs = False
     """
 
-    def __init__(self, nn_type: str, input: str, output: str, cycles: int = 2,
-                 population_size: int = 4, epoch_per_cycle: int = 2,
+    def __init__(self, nn_type: str, task: str, input: str, output: str,
+                 cycles: int = 2, population_size: int = 4, epoch_per_cycle: int = 2,
                  save_logs: bool = False, logs_folder: str = None):
         self.nn_type = nn_type
+        self.task = task
         self.input = input
         self.output = output
         self.cycles = cycles
@@ -106,16 +108,19 @@ class NNOptimizer:
             actual_model_path = self.logger.get_actual_model_path()
             actual_opt_path = self.logger.get_actual_opt_path()
 
-            # Get population - list [NN_1, NN_2, ..., NN_self.population_size]
-            nns_list = generate_population(nn_type=self.nn_type,
-                                           actual_model_path=actual_model_path,
-                                           actual_opt_path=actual_opt_path,
-                                           actual_criterion=self.current_criterion,
-                                           actual_batch_size=self.current_batch_size,
-                                           amount_of_individuals=self.population_size)
+            # Get population - list [NN_0, NN_1, ..., NN_self.population_size]
+            # And description of changes in chgs_list
+            nns_list, chgs_list = generate_population(nn_type=self.nn_type,
+                                                      task=self.task,
+                                                      actual_model_path=actual_model_path,
+                                                      actual_opt_path=actual_opt_path,
+                                                      actual_optimizer=self.current_optimizer,
+                                                      actual_criterion=self.current_criterion,
+                                                      actual_batch_size=self.current_batch_size,
+                                                      amount_of_individuals=self.population_size)
 
             # Train each individual by _train_population
-            self._train_population(nns_list)
+            self._train_population(nns_list, chgs_list)
 
             # Calculate fitness score for every NN in nns_list
             pop_cycle_metadata = self.pop_logger.get_metadata(cycle=self.current_cycle)
@@ -210,7 +215,7 @@ class NNOptimizer:
 
             print('Epoch: {} \tTraining Loss: {:.2f}'.format(epoch, train_loss))
 
-    def _train_population(self, nns_list: list) -> None:
+    def _train_population(self, nns_list: list, changes_list: list) -> None:
         """
         Method for training a population (several NN)
 
@@ -219,6 +224,7 @@ class NNOptimizer:
             - loss: loss function
             - optimizer: obtained optimizer
             - batch: batch size
+        :param changes_list: list with descriptions of changes
         """
 
         # Train model on GPU
@@ -268,7 +274,8 @@ class NNOptimizer:
                 self.pop_logger.collect_scores(model_number=model_number,
                                                current_cycle=self.current_cycle,
                                                current_epoch=epoch,
-                                               model_score=train_loss)
+                                               model_score=train_loss,
+                                               change=changes_list[model_number])
 
             # Save trained model
             self.pop_logger.save_nn(current_cycle=self.current_cycle,

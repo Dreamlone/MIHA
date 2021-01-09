@@ -213,7 +213,7 @@ class PopulationLogger:
 
 
     def collect_scores(self, model_number: int, current_cycle: int,
-                       current_epoch: int, model_score: float) -> None:
+                       current_epoch: int, model_score: float, change: str) -> None:
         """
         Method for updating metadata during training of multiple neural networks
         (from one population)
@@ -222,6 +222,7 @@ class PopulationLogger:
         :param current_cycle: current cycle of the evolution process
         :param current_epoch: current epoch of the learning process
         :param model_score: value of the metric in the training sample
+        :param change: descriptions of changes during mutation
         """
 
         # Get array with scores
@@ -234,6 +235,7 @@ class PopulationLogger:
 
         # Update metadata
         current_model_list[0] = current_model_scores
+        current_model_list[1] = change
         current_cycle_dict.update({model_number: current_model_list})
         self.pop_metadata.update({current_cycle:current_cycle_dict})
 
@@ -247,6 +249,7 @@ class PopulationLogger:
         """
 
         current_cycle_dict = self.pop_metadata.get(cycle)
+        print(self.pop_metadata)
         return current_cycle_dict
 
     def save_metadata(self, where_to_save: str) -> None:
