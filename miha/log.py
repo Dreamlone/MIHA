@@ -66,35 +66,32 @@ class ModelLogger:
         if current_cycle == 0:
             if is_last_epoch == True:
                 model_zip = 'model_init.zip'
-                model_pth = 'optimizer_init.pth'
-                model_path = [os.path.join(self.logs_path, model_zip),
-                              os.path.join(self.logs_path, model_pth)]
+                optimizer_pth = 'optimizer_init.pth'
+                model_pth = 'model_init.pth'
 
                 # Save NN model
-                self._save_nn(model_zip, model_pth)
+                self._save_nn(model_zip, optimizer_pth, model_pth)
             else:
                 pass
         elif current_cycle == -1:
             if is_last_epoch == True:
                 model_zip = 'model_final.zip'
-                model_pth = 'optimizer_final.pth'
-                model_path = [os.path.join(self.logs_path, model_zip),
-                              os.path.join(self.logs_path, model_pth)]
+                optimizer_pth = 'optimizer_final.pth'
+                model_pth = 'model_final.pth'
 
                 # Save NN model
-                self._save_nn(model_zip, model_pth)
+                self._save_nn(model_zip, optimizer_pth, model_pth)
             else:
                 pass
         # If there is cycle optimization
         else:
             if is_last_epoch == True:
                 model_zip = ''.join(('model_', str(current_cycle), '.zip'))
-                model_pth = ''.join(('optimizer_', str(current_cycle), '.pth'))
-                model_path = [os.path.join(self.logs_path, model_zip),
-                              os.path.join(self.logs_path, model_pth)]
+                optimizer_pth = ''.join(('optimizer_', str(current_cycle), '.pth'))
+                model_pth = ''.join(('model_', str(current_cycle), '.pth'))
 
                 # Save NN model
-                self._save_nn(model_zip, model_pth)
+                self._save_nn(model_zip, optimizer_pth, model_pth)
             else:
                 pass
 
@@ -125,12 +122,13 @@ class ModelLogger:
         plt.grid()
         plt.show()
 
-    def _save_nn(self, model_zip: str, model_pth: str) -> None:
+    def _save_nn(self, model_zip: str, optimizer_pth: str, model_pth: str) -> None:
         """
         The method saves the neural network to the specified folder
 
-        :param model_zip: name of the file to save the model to
-        :param model_pth: name of the file to save the optimizer to
+        :param model_zip: name of the file to save the model to (zip format)
+        :param optimizer_pth: name of the file to save the optimizer to
+        :param model_pth: name of the file to save the model to (pth format)
         """
 
         # Determine input dimensions for data
@@ -148,12 +146,17 @@ class ModelLogger:
         jit.save(net_trace, actual_model_path)
 
         # Save optimizer configuration to file
-        actual_opt_path = os.path.join(self.logs_path, model_pth)
+        actual_opt_path = os.path.join(self.logs_path, optimizer_pth)
         torch.save({'optimizer': self.nn_optimizer.state_dict()}, actual_opt_path)
+
+        # Save model as pth file
+        actual_model_pth_path = os.path.join(self.logs_path, model_pth)
+        torch.save(self.nn_model.state_dict(), actual_model_pth_path)
 
         # Save state of actual path to model
         self.actual_model_path = actual_model_path
         self.actual_opt_path = actual_opt_path
+        self.actual_model_pth_path = actual_model_pth_path
 
     def get_actual_opt_path(self) -> str:
         """
@@ -166,6 +169,13 @@ class ModelLogger:
         The method returns the path to the current version of the neural network
         """
         return(self.actual_model_path)
+
+    def get_actual_model_pth_path(self) -> str:
+        """
+        The method returns the path to the current version of the neural network
+        as pth file
+        """
+        return(self.actual_model_pth_path)
 
     @staticmethod
     def delete_nn(model_to_remove):
@@ -252,22 +262,17 @@ class PopulationLogger:
         print(self.pop_metadata)
         return current_cycle_dict
 
-    def save_metadata(self, where_to_save: str) -> None:
+    def save_metadata(self) -> None:
         """
         This method allow save metadata in a specified folder
 
-        :param where_to_save: path to folder where "Metadata.json" file must be
-        saved
         """
 
-        # Create folder if it doesnt exists
-        if os.path.isdir(where_to_save) == False:
-            os.makedirs(where_to_save)
-
-        # Save file as json
-        json_path = os.path.join(where_to_save, 'Metadata.json')
-        with open(json_path, 'w') as json_file:
-            json.dump(self.metadata, json_file)
+        # Save file as txt
+        json_path = os.path.join(self.logs_path, 'metadata.txt')
+        with open(json_path, 'w') as file:
+            for key, value in self.pop_metadata.items():
+                file.write(f'{key}, {value}\n')
 
     def save_nn(self, current_cycle: int, model_number: int, nn_model,
                 nn_optimizer, nn_loss, nn_batch) -> None:
@@ -281,6 +286,9 @@ class PopulationLogger:
         :param nn_loss: Loss of NN model
         :param nn_batch: batch size
         """
+
+        nn_model = nn_model.to('cpu')
+        nn_model.eval()
 
         # Define archive files names
         model_zip = ''.join((str(current_cycle),'_',str(model_number),'_model.zip'))
@@ -308,7 +316,6 @@ class PopulationLogger:
 def get_device():
     """
     Method for getting available devices.
-
     """
 
     if torch.cuda.is_available():

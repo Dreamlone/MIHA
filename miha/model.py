@@ -24,7 +24,9 @@ class NNOptimizer:
     :param epoch_per_cycle: how many epochs should the neural network be trained
     after the crossover in each cycle
     :param fixing_epochs: how many epochs should a single model be trained in
-    one cycle after crossover
+    one cycle after crossover runup_epochs
+    :param runup_epochs: the number of epochs to complete before entering the
+    loop cycles and after the optimization is complete
     :param save_logs: do we need to save logs
     :param logs_folder: path to th folder where do we need to save logs, ignore
     when save_logs = False
@@ -32,7 +34,8 @@ class NNOptimizer:
 
     def __init__(self, nn_type: str, task: str, input: str, output: str,
                  cycles: int = 2, population_size: int = 4, epoch_per_cycle: int = 2,
-                 fixing_epochs: int = 4, save_logs: bool = False, logs_folder: str = None):
+                 fixing_epochs: int = 4, runup_epochs: int = 3,
+                 save_logs: bool = False, logs_folder: str = None):
         self.nn_type = nn_type
         self.task = task
         self.input = input
@@ -43,8 +46,7 @@ class NNOptimizer:
 
         # The number of epochs required for initial training up to
         # the population generation stage
-        # TODO determine amount of init epochs - const(2? 10? 50?) or variable
-        self.init_epochs = 3
+        self.runup_epochs = runup_epochs
 
         self.epoch_per_cycle = epoch_per_cycle
         self.fixing_epochs = fixing_epochs
@@ -92,13 +94,14 @@ class NNOptimizer:
         self.current_cycle = 0
 
         # Initial configurations of the model, loss function, and optimizer
+        self.source_nn_class = source_nn
         self.current_nn = source_nn()
         self.current_criterion = source_loss()
         self.current_optimizer = source_optimizer(self.current_nn.parameters())
         self.current_batch_size = source_batch_size
 
         # Initial train for n amount of epochs
-        self._train(n_epochs=self.init_epochs)
+        self._train(n_epochs=self.runup_epochs)
 
         ######################
         # Start optimization #
@@ -110,6 +113,7 @@ class NNOptimizer:
             # Get actual model and optimizator path
             actual_model_path = self.logger.get_actual_model_path()
             actual_opt_path = self.logger.get_actual_opt_path()
+            actual_model_pth_path = self.logger.get_actual_model_pth_path()
 
             # Get population - list [NN_0, NN_1, ..., NN_self.population_size]
             # And description of changes in chgs_list
@@ -117,6 +121,8 @@ class NNOptimizer:
                                                       task=self.task,
                                                       actual_model_path=actual_model_path,
                                                       actual_opt_path=actual_opt_path,
+                                                      actual_model_pth_path=actual_model_pth_path,
+                                                      source_nn_class=self.source_nn_class,
                                                       actual_optimizer=self.current_optimizer,
                                                       actual_criterion=self.current_criterion,
                                                       actual_batch_size=self.current_batch_size,
@@ -146,7 +152,10 @@ class NNOptimizer:
         # Finish training model with final training set of epochs
         print('\nFinal cycle')
         self.current_cycle = -1
-        self._train(n_epochs=self.init_epochs)
+        self._train(n_epochs=self.runup_epochs)
+
+        # Save "population metadata" to txt file
+        self.pop_logger.save_metadata()
 
         # Plot training
         self.logger.plot_scores()

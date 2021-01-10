@@ -41,8 +41,9 @@ gapfilling_optimizer = NNOptimizer(nn_type = 'AE',
                                    output = './data/remote_sensing_gapfilling/Y_train.pt',
                                    cycles = 2,
                                    population_size = 2,
-                                   epoch_per_cycle = 4,
-                                   fixing_epochs = 4,
+                                   epoch_per_cycle = 2,
+                                   fixing_epochs = 2,
+                                   runup_epochs = 1,
                                    save_logs = True,
                                    logs_folder = './data/remote_sensing_gapfilling/logs')
 
