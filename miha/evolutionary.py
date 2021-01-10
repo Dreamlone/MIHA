@@ -49,8 +49,11 @@ class Mutator:
         else:
             new_batch_size = self.batch_size + 2
 
-        description = ''.join(('batch size was changed from ', str(self.batch_size),
-                               ' to ', str(new_batch_size)))
+        if new_batch_size != self.batch_size:
+            description = ''.join(('batch size was changed from ',
+                                   str(self.batch_size),' to ', str(new_batch_size)))
+        else:
+            description = 'nothing has changed'
 
         model_dict = {'model': self.model, 'loss': self.criterion,
                       'optimizer': self.optimizer, 'batch': new_batch_size}
@@ -65,6 +68,11 @@ class Mutator:
         return model_dict, description
 
     def change_layer_activations(self):
+        """
+        The method allows you to replace the activation function in the selected
+         neural network layer
+
+        """
 
         # Get layer names
         layer_names = []
@@ -248,7 +256,7 @@ class Mutator:
 
 def generate_population(nn_type: str, task: str, actual_model_path: str, actual_opt_path: str,
                         actual_model_pth_path, source_nn_class, actual_optimizer,
-                        actual_criterion, actual_batch_size, amount_of_individuals: int):
+                        actual_criterion, actual_batch_size, amount_of_individuals: int, act_mod):
     """
     Method for generating a population
 
@@ -276,8 +284,7 @@ def generate_population(nn_type: str, task: str, actual_model_path: str, actual_
     for i in range(0, amount_of_individuals):
         state = torch.load(actual_opt_path)
 
-        actual_model = source_nn_class()
-        actual_model.load_state_dict(torch.load(actual_model_pth_path))
+        actual_model = deepcopy(act_mod)
 
         device = get_device()
         actual_model = actual_model.to(device)
@@ -306,13 +313,12 @@ def generate_population(nn_type: str, task: str, actual_model_path: str, actual_
                                batch_size=batch_copy)
 
         # Make mutation
-        operators = ['change_batch_size', 'change_loss_criterion',
-                     'change_layer_activations', 'change_neurons_activations',
+        # TODO implement change_loss_criterion, change_neurons_activations operators
+        operators = ['change_batch_size',
+                     'change_layer_activations',
                      'change_optimizer']
 
         random_operator = random.choice(operators)
-        # TODO remove line below after finishing ->
-        random_operator = 'change_layer_activations'
         if random_operator == 'change_batch_size':
             mutated_model, change = mut_operator.change_batch_size()
         elif random_operator == 'change_loss_criterion':

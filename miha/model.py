@@ -126,7 +126,8 @@ class NNOptimizer:
                                                       actual_optimizer=self.current_optimizer,
                                                       actual_criterion=self.current_criterion,
                                                       actual_batch_size=self.current_batch_size,
-                                                      amount_of_individuals=self.population_size)
+                                                      amount_of_individuals=self.population_size,
+                                                      act_mod=self.current_nn)
 
             # Train each individual by _train_population
             self._train_population(nns_list, chgs_list)
@@ -240,7 +241,8 @@ class NNOptimizer:
 
         # Train model on GPU
         device = get_device()
-
+        self.current_nn = self.current_nn.to(device)
+        self.current_nn = self.current_nn.train(mode=True)
         for model_number, nn_to_train in enumerate(nns_list):
             model_to_train = nn_to_train['model']
             loss_to_train = nn_to_train['loss']
@@ -292,6 +294,4 @@ class NNOptimizer:
             self.pop_logger.save_nn(current_cycle=self.current_cycle,
                                     model_number=model_number,
                                     nn_model=model_to_train,
-                                    nn_optimizer=optimizer_to_train,
-                                    nn_loss=loss_to_train,
-                                    nn_batch=batch_to_train)
+                                    nn_optimizer=optimizer_to_train)

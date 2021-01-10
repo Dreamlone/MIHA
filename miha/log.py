@@ -275,7 +275,7 @@ class PopulationLogger:
                 file.write(f'{key}, {value}\n')
 
     def save_nn(self, current_cycle: int, model_number: int, nn_model,
-                nn_optimizer, nn_loss, nn_batch) -> None:
+                nn_optimizer) -> None:
         """
         The method saves the neural network (as zip and pth files) in a special folder
 
@@ -283,8 +283,6 @@ class PopulationLogger:
         :param model_number: index of model (neural network) in population
         :param nn_model: NN model to save
         :param nn_optimizer: Optimizer to save
-        :param nn_loss: Loss of NN model
-        :param nn_batch: batch size
         """
 
         nn_model = nn_model.to('cpu')

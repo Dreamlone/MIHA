@@ -37,18 +37,18 @@ class ConvNet(nn.Module):
 # Passing the prepared architecture to the optimizer class
 gapfilling_optimizer = NNOptimizer(nn_type = 'AE',
                                    task='regression',
-                                   input = './data/remote_sensing_gapfilling/X_train.pt',
-                                   output = './data/remote_sensing_gapfilling/Y_train.pt',
-                                   cycles = 2,
-                                   population_size = 2,
-                                   epoch_per_cycle = 2,
-                                   fixing_epochs = 2,
-                                   runup_epochs = 1,
-                                   save_logs = True,
-                                   logs_folder = './data/remote_sensing_gapfilling/logs')
+                                   input='./data/remote_sensing_gapfilling/X_train.pt',
+                                   output='./data/remote_sensing_gapfilling/Y_train.pt',
+                                   cycles=2,
+                                   population_size=2,
+                                   epoch_per_cycle =2,
+                                   fixing_epochs=3,
+                                   runup_epochs=2,
+                                   save_logs=True,
+                                   logs_folder='./data/remote_sensing_gapfilling/logs')
 
 # Find the best model hyperparameters set for chosen topology
-best_solution = gapfilling_optimizer.optimize(source_nn = ConvNet,
-                                              source_loss = nn.MSELoss,
-                                              source_optimizer = torch.optim.Adam,
-                                              source_batch_size = 32)
+best_solution = gapfilling_optimizer.optimize(source_nn=ConvNet,
+                                              source_loss=nn.MSELoss,
+                                              source_optimizer=torch.optim.Adam,
+                                              source_batch_size=32)

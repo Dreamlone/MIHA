@@ -1,2 +1,2 @@
-1, {0: [array([1.93528916, 2.49653468]), 'in layerlayer2 was changed activation function fromReLU to SELU'], 1: [array([2.38148619, 2.24417221]), 'in layerlayer3 was changed activation function fromReLU to Tanh']}
-2, {0: [array([1.33064125, 1.59065422]), 'in layerlayer1 was changed activation function fromReLU to SELU'], 1: [array([2.25620983, 1.72279076]), 'in layerlayer4 was changed activation function fromReLU to ELU']}
+1, {0: [array([1.4758864 , 1.32255821]), 'batch size was changed from 32 to 27'], 1: [array([2.95759245, 3.19511932]), 'in layer with name layer3 was changed activation function from ReLU to Sigmoid']}
+2, {0: [array([1.75384517, 1.59032047]), 'batch size was changed from 27 to 34'], 1: [array([1.4881382 , 1.49776765]), 'batch size was changed from 27 to 31']}
