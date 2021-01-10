@@ -67,20 +67,18 @@ class ModelLogger:
             if is_last_epoch == True:
                 model_zip = 'model_init.zip'
                 optimizer_pth = 'optimizer_init.pth'
-                model_pth = 'model_init.pth'
 
                 # Save NN model
-                self._save_nn(model_zip, optimizer_pth, model_pth)
+                self._save_nn(model_zip, optimizer_pth)
             else:
                 pass
         elif current_cycle == -1:
             if is_last_epoch == True:
                 model_zip = 'model_final.zip'
                 optimizer_pth = 'optimizer_final.pth'
-                model_pth = 'model_final.pth'
 
                 # Save NN model
-                self._save_nn(model_zip, optimizer_pth, model_pth)
+                self._save_nn(model_zip, optimizer_pth)
             else:
                 pass
         # If there is cycle optimization
@@ -88,10 +86,9 @@ class ModelLogger:
             if is_last_epoch == True:
                 model_zip = ''.join(('model_', str(current_cycle), '.zip'))
                 optimizer_pth = ''.join(('optimizer_', str(current_cycle), '.pth'))
-                model_pth = ''.join(('model_', str(current_cycle), '.pth'))
 
                 # Save NN model
-                self._save_nn(model_zip, optimizer_pth, model_pth)
+                self._save_nn(model_zip, optimizer_pth)
             else:
                 pass
 
@@ -122,13 +119,12 @@ class ModelLogger:
         plt.grid()
         plt.show()
 
-    def _save_nn(self, model_zip: str, optimizer_pth: str, model_pth: str) -> None:
+    def _save_nn(self, model_zip: str, optimizer_pth: str) -> None:
         """
         The method saves the neural network to the specified folder
 
         :param model_zip: name of the file to save the model to (zip format)
         :param optimizer_pth: name of the file to save the optimizer to
-        :param model_pth: name of the file to save the model to (pth format)
         """
 
         # Determine input dimensions for data
@@ -149,14 +145,9 @@ class ModelLogger:
         actual_opt_path = os.path.join(self.logs_path, optimizer_pth)
         torch.save({'optimizer': self.nn_optimizer.state_dict()}, actual_opt_path)
 
-        # Save model as pth file
-        actual_model_pth_path = os.path.join(self.logs_path, model_pth)
-        torch.save(self.nn_model.state_dict(), actual_model_pth_path)
-
         # Save state of actual path to model
         self.actual_model_path = actual_model_path
         self.actual_opt_path = actual_opt_path
-        self.actual_model_pth_path = actual_model_pth_path
 
     def get_actual_opt_path(self) -> str:
         """
@@ -169,13 +160,6 @@ class ModelLogger:
         The method returns the path to the current version of the neural network
         """
         return(self.actual_model_path)
-
-    def get_actual_model_pth_path(self) -> str:
-        """
-        The method returns the path to the current version of the neural network
-        as pth file
-        """
-        return(self.actual_model_pth_path)
 
     @staticmethod
     def delete_nn(model_to_remove):

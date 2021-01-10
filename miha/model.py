@@ -94,7 +94,6 @@ class NNOptimizer:
         self.current_cycle = 0
 
         # Initial configurations of the model, loss function, and optimizer
-        self.source_nn_class = source_nn
         self.current_nn = source_nn()
         self.current_criterion = source_loss()
         self.current_optimizer = source_optimizer(self.current_nn.parameters())
@@ -111,23 +110,18 @@ class NNOptimizer:
             print(f'\nOptimizing cycle number {self.current_cycle}')
 
             # Get actual model and optimizator path
-            actual_model_path = self.logger.get_actual_model_path()
             actual_opt_path = self.logger.get_actual_opt_path()
-            actual_model_pth_path = self.logger.get_actual_model_pth_path()
 
             # Get population - list [NN_0, NN_1, ..., NN_self.population_size]
             # And description of changes in chgs_list
             nns_list, chgs_list = generate_population(nn_type=self.nn_type,
                                                       task=self.task,
-                                                      actual_model_path=actual_model_path,
                                                       actual_opt_path=actual_opt_path,
-                                                      actual_model_pth_path=actual_model_pth_path,
-                                                      source_nn_class=self.source_nn_class,
                                                       actual_optimizer=self.current_optimizer,
                                                       actual_criterion=self.current_criterion,
                                                       actual_batch_size=self.current_batch_size,
-                                                      amount_of_individuals=self.population_size,
-                                                      act_mod=self.current_nn)
+                                                      actual_nn=self.current_nn,
+                                                      amount_of_individuals=self.population_size)
 
             # Train each individual by _train_population
             self._train_population(nns_list, chgs_list)

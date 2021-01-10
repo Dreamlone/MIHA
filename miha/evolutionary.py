@@ -254,21 +254,18 @@ class Mutator:
         return fucntion_obj
 
 
-def generate_population(nn_type: str, task: str, actual_model_path: str, actual_opt_path: str,
-                        actual_model_pth_path, source_nn_class, actual_optimizer,
-                        actual_criterion, actual_batch_size, amount_of_individuals: int, act_mod):
+def generate_population(nn_type: str, task: str, actual_opt_path: str, actual_optimizer,
+                        actual_criterion, actual_batch_size, actual_nn, amount_of_individuals: int):
     """
     Method for generating a population
 
     :param nn_type: the type of NN architecture (for example: 'FNN', 'CNN', 'RNN', 'LSTM', 'AE')
     :param task: solving task ('regression' or 'classification')
-    :param actual_model_path: path to zip file with current NN model
     :param actual_opt_path: path to pth optimizer of current NN model
-    :param actual_model_pth_path: path to NN model as pth file
-    :param source_nn_class: class for NN init
     :param actual_optimizer: current optimizer
     :param actual_criterion: loss of current NN model
     :param actual_batch_size: current batch size
+    :param actual_nn: current NN model
     :param amount_of_individuals: number of individuals required
 
     :return nns_list: list with neural network models as dict, where
@@ -284,8 +281,10 @@ def generate_population(nn_type: str, task: str, actual_model_path: str, actual_
     for i in range(0, amount_of_individuals):
         state = torch.load(actual_opt_path)
 
-        actual_model = deepcopy(act_mod)
+        # Make full copy of NN model
+        actual_model = deepcopy(actual_nn)
 
+        # Transfer to GPU
         device = get_device()
         actual_model = actual_model.to(device)
         actual_model = actual_model.train(mode=True)
@@ -313,7 +312,7 @@ def generate_population(nn_type: str, task: str, actual_model_path: str, actual_
                                batch_size=batch_copy)
 
         # Make mutation
-        # TODO implement change_loss_criterion, change_neurons_activations operators
+        # TODO implement 'change_loss_criterion', 'change_neurons_activations' operators
         operators = ['change_batch_size',
                      'change_layer_activations',
                      'change_optimizer']
@@ -363,7 +362,9 @@ def eval_fitness(metadata: dict) -> list:
         scores_arr = model_info[0]
 
         # Calculate efficiency of NN
-        fitness = scores_arr[0]-scores_arr[-1]
+        start_loss = scores_arr[0]
+        final_loss = scores_arr[-1]
+        fitness = (start_loss - final_loss)-final_loss
         fitness_list.append(fitness)
 
     return fitness_list
