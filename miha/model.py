@@ -73,6 +73,8 @@ class NNOptimizer:
                                            cycles=self.cycles,
                                            epoch_per_cycle=self.epoch_per_cycle)
 
+        self._display_epoch_amount()
+
     def optimize(self, source_nn, source_loss, source_optimizer,
                  source_batch_size: int = 32) -> dict:
         """
@@ -289,3 +291,21 @@ class NNOptimizer:
                                     model_number=model_number,
                                     nn_model=model_to_train,
                                     nn_optimizer=optimizer_to_train)
+
+    def _display_epoch_amount(self) -> None:
+        """
+        The method outputs the total number of epochs that will be produced
+        """
+
+        # Amount of runup epochs
+        runup_epochs_amount = 2*self.runup_epochs
+
+        # Amount of epochs in population per cycle
+        pop_eval_per_cycle = self.cycles*(self.population_size*self.epoch_per_cycle)
+
+        # Amount of epochs for single model per cycle
+        single_eval_per_cycle = self.cycles*self.fixing_epochs
+
+        all_epochs = runup_epochs_amount + pop_eval_per_cycle + single_eval_per_cycle
+
+        print(f'Total number of epochs that will be produced {all_epochs} \n')
