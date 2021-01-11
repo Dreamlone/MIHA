@@ -24,8 +24,8 @@ Optimizer for configuration of hyperparameters in neural networks.
 
 Description of the submodules:
 * [model](https://github.com/Dreamlone/MIHA/blob/main/docs/model.md)
-* [log](https://github.com/Dreamlone/MIHA/blob/main/docs/logs.md)
-* evolutionary
+* [log](https://github.com/Dreamlone/MIHA/blob/main/docs/log.md)
+* [evolutionary](https://github.com/Dreamlone/MIHA/blob/main/docs/evolutionary.md)
 
 ## How to use
 

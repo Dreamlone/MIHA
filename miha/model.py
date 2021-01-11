@@ -76,7 +76,7 @@ class NNOptimizer:
         self._display_epoch_amount()
 
     def optimize(self, source_nn, source_loss, source_optimizer,
-                 source_batch_size: int = 32) -> dict:
+                 source_batch_size: int = 32, crossover: bool = True) -> dict:
         """
         A method for finding the optimal set of hyperparameters for a given architecture
 
@@ -84,6 +84,8 @@ class NNOptimizer:
         :param source_loss: initial loss function
         :param source_optimizer: initial optimizer
         :param source_batch_size: batch size
+        :param crossover: is there a need to use crossover, if False, selection
+        only will be used
 
         :return : dictionary with obtained model
             - model: neural network model
@@ -135,7 +137,9 @@ class NNOptimizer:
             print(f'Fitness list: {fitness_list}')
 
             # Crossover -> get NN to continue training
-            updated_model = crossover(fitness_list, nns_list)
+            updated_model = get_best_model(fitness_list=fitness_list,
+                                           nns_list=nns_list,
+                                           crossover=crossover)
             self.current_nn = updated_model['model']
             self.current_criterion = updated_model['loss']
             self.current_optimizer = updated_model['optimizer']

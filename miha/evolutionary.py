@@ -60,13 +60,6 @@ class Mutator:
 
         return model_dict, description
 
-    def change_loss_criterion(self):
-        model_dict = {'model': self.model, 'loss': self.criterion,
-                      'optimizer': self.optimizer, 'batch': self.batch_size}
-        description = 'change loss criterion'
-
-        return model_dict, description
-
     def change_layer_activations(self):
         """
         The method allows you to replace the activation function in the selected
@@ -114,17 +107,6 @@ class Mutator:
 
         return model_dict, description
 
-    def change_neurons_activations(self):
-        """
-        TODO implement
-
-        """
-        model_dict = {'model': self.model, 'loss': self.criterion,
-                      'optimizer': self.optimizer, 'batch': self.batch_size}
-        description = 'change layer neuron functions'
-
-        return model_dict, description
-
     def change_optimizer(self):
         """
         The method changes the optimizer of NN model
@@ -159,6 +141,29 @@ class Mutator:
             description = 'nothing has changed'
         model_dict = {'model': self.model, 'loss': self.criterion,
                       'optimizer': self.optimizer, 'batch': self.batch_size}
+
+        return model_dict, description
+
+    def change_neurons_activations(self):
+        """
+        TODO implement
+
+        """
+        model_dict = {'model': self.model, 'loss': self.criterion,
+                      'optimizer': self.optimizer, 'batch': self.batch_size}
+        description = 'change layer neuron functions'
+
+        return model_dict, description
+
+    def change_loss_criterion(self):
+        """
+        TODO implement
+
+        """
+
+        model_dict = {'model': self.model, 'loss': self.criterion,
+                      'optimizer': self.optimizer, 'batch': self.batch_size}
+        description = 'change loss criterion'
 
         return model_dict, description
 
@@ -353,18 +358,29 @@ def eval_fitness(metadata: dict) -> list:
     return fitness_list
 
 
-def crossover(fitness_list, nns_list):
+def get_best_model(fitness_list: list, nns_list: list, crossover: bool):
     """
-    For now it returns only 1 best model without crossover (only selection)
-    TODO implement crossover operator in right way
+    The method allows you to get one model out of several by using either
+    a selection operator or a crossover
+
+    :param fitness_list: list with evaluated fitness scores for each model in nns_list
+    :param nns_list: list with dict (NN models)
+    :param crossover: is there a need to use crossover, if False, selection
+    only will be used
+
+    :return nn_model: dictionary with NN model
     """
 
     # If there is only 1 model in population
     if len(fitness_list) == 1:
         nn_model = nns_list[0]
     else:
-        # Selection: choose 2 the fittest models
-        fitness_list = np.array(fitness_list)
-        best_ids = np.argmax(fitness_list)
-        nn_model = nns_list[best_ids]
+        if crossover == True:
+            # TODO Add ability to mix best models
+            raise NotImplementedError("This functionality not implemented yet")
+        else:
+            # Selection: choose 1 the fittest model
+            fitness_list = np.array(fitness_list)
+            best_id = np.argmax(fitness_list)
+            nn_model = nns_list[best_id]
     return nn_model
