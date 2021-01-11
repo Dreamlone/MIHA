@@ -243,7 +243,6 @@ class PopulationLogger:
         """
 
         current_cycle_dict = self.pop_metadata.get(cycle)
-        print(self.pop_metadata)
         return current_cycle_dict
 
     def save_metadata(self) -> None:

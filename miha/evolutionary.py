@@ -207,7 +207,9 @@ class Mutator:
                     # Find the second layer with activation function
                     if int(number_2) == 1:
                         prev_act = str(child_2)
-                        prev_act = prev_act[:-2]
+                        prev_act_splitted = prev_act.split('(')
+                        prev_act = prev_act_splitted[0]
+
                         # Set new activation function
                         setattr(child_1, number_2, new_act_function)
                         break
@@ -224,33 +226,15 @@ class Mutator:
         :return fucntion_obj: new activation function
         """
 
-        if name_function == 'ELU':
-            fucntion_obj = torch.nn.ELU()
-        elif name_function == 'Hardshrink':
-            fucntion_obj = torch.nn.Hardshrink()
-        elif name_function == 'Hardsigmoid':
-            fucntion_obj = torch.nn.Hardsigmoid()
-        elif name_function == 'Hardtanh':
-            fucntion_obj = torch.nn.Hardtanh()
-        elif name_function == 'ReLU':
-            fucntion_obj = torch.nn.ReLU()
-        elif name_function == 'ReLU6':
-            fucntion_obj = torch.nn.ReLU6()
-        elif name_function == 'SELU':
-            fucntion_obj = torch.nn.SELU()
-        elif name_function == 'Sigmoid':
-            fucntion_obj = torch.nn.Sigmoid()
-        elif name_function == 'Tanh':
-            fucntion_obj = torch.nn.Tanh()
-        elif name_function == 'Softmin':
-            fucntion_obj = torch.nn.Softmin()
-        elif name_function == 'Softmax':
-            fucntion_obj = torch.nn.Softmax()
-        elif name_function == 'Softmax2d':
-            fucntion_obj = torch.nn.Softmax2d()
-        elif name_function == 'LogSoftmax':
-            fucntion_obj = torch.nn.LogSoftmax()
+        activations_dict = {'ELU':torch.nn.ELU(), 'Hardshrink':torch.nn.Hardshrink(),
+                            'Hardsigmoid':torch.nn.Hardsigmoid(), 'Hardtanh':torch.nn.Hardtanh(),
+                            'ReLU':torch.nn.ReLU(), 'ReLU6': torch.nn.ReLU6(),
+                            'SELU':torch.nn.SELU(), 'Sigmoid': torch.nn.Sigmoid(),
+                            'Tanh':torch.nn.Tanh(), 'Softmin': torch.nn.Softmin(),
+                            'Softmax': torch.nn.Softmax(), 'Softmax2d': torch.nn.Softmax2d(),
+                            'LogSoftmax':torch.nn.LogSoftmax()}
 
+        fucntion_obj = activations_dict.get(name_function)
         return fucntion_obj
 
 
