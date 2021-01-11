@@ -219,7 +219,6 @@ class Mutator:
 
     def _get_act_by_name(self, name_function):
         """
-        TODO need to refactor
         The method returns the corresponding function by it's name
 
         :param name_function: name of function
