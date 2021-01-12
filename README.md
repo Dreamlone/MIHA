@@ -27,12 +27,13 @@ Description of the submodules:
 * [log](https://github.com/Dreamlone/MIHA/blob/main/docs/log.md)
 * [evolutionary](https://github.com/Dreamlone/MIHA/blob/main/docs/evolutionary.md)
 
+For now all the necessary description can be found in docstring.
+
 ## How to use
 
 How to run the algorithm can be seen in the examples:
-* [Remote sensing gap-filling example (CNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/CNN_autoencoder_gapfilling.py)
 * Prediction of water levels (FNN) (in progress)
-* Time series forecasting (LSTM) (in progress)
+* [Remote sensing gap-filling example (CNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/CNN_autoencoder_gapfilling.py)
 
 ## Contacts
 
