@@ -144,6 +144,17 @@ class Mutator:
 
         return model_dict, description
 
+    def no_change(self):
+        """
+        Function dont do anything with NN model
+
+        """
+        model_dict = {'model': self.model, 'loss': self.criterion,
+                      'optimizer': self.optimizer, 'batch': self.batch_size}
+        description = 'nothing has changed'
+
+        return model_dict, description
+
     def change_neurons_activations(self):
         """
         TODO implement
@@ -243,7 +254,8 @@ class Mutator:
 
 
 def generate_population(nn_type: str, task: str, actual_opt_path: str, actual_optimizer,
-                        actual_criterion, actual_batch_size, actual_nn, amount_of_individuals: int):
+                        actual_criterion, actual_batch_size, actual_nn, amount_of_individuals: int,
+                        check_mode: bool):
     """
     Method for generating a population
 
@@ -255,6 +267,8 @@ def generate_population(nn_type: str, task: str, actual_opt_path: str, actual_op
     :param actual_batch_size: current batch size
     :param actual_nn: current NN model
     :param amount_of_individuals: number of individuals required
+    :param check_mode: if True, in populations there is always one model
+    will remain unchanged
 
     :return nns_list: list with neural network models as dict, where
         - model: neural network model
@@ -305,7 +319,15 @@ def generate_population(nn_type: str, task: str, actual_opt_path: str, actual_op
                      'change_layer_activations',
                      'change_optimizer']
 
-        random_operator = random.choice(operators)
+        if check_mode == False:
+            random_operator = random.choice(operators)
+        else:
+            # The model with index 0 in each population will be unchanged
+            if i == 0:
+                random_operator = 'no_change'
+            else:
+                random_operator = random.choice(operators)
+
         if random_operator == 'change_batch_size':
             mutated_model, change = mut_operator.change_batch_size()
         elif random_operator == 'change_loss_criterion':
@@ -316,6 +338,8 @@ def generate_population(nn_type: str, task: str, actual_opt_path: str, actual_op
             mutated_model, change = mut_operator.change_neurons_activations()
         elif random_operator == 'change_optimizer':
             mutated_model, change = mut_operator.change_optimizer()
+        elif random_operator == 'no_change':
+            mutated_model, change = mut_operator.no_change()
 
         nns_list.append(mutated_model)
         changes_list.append(change)
@@ -383,4 +407,6 @@ def get_best_model(fitness_list: list, nns_list: list, crossover: bool):
             fitness_list = np.array(fitness_list)
             best_id = np.argmax(fitness_list)
             nn_model = nns_list[best_id]
+
+            print(f'Best model after selection - index {best_id}')
     return nn_model

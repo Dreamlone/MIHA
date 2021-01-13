@@ -76,7 +76,8 @@ class NNOptimizer:
         self._display_epoch_amount()
 
     def optimize(self, source_nn, source_loss, source_optimizer,
-                 source_batch_size: int = 32, crossover: bool = True) -> dict:
+                 source_batch_size: int = 32, crossover: bool = True,
+                 check_mode: bool = False) -> dict:
         """
         A method for finding the optimal set of hyperparameters for a given architecture
 
@@ -86,6 +87,8 @@ class NNOptimizer:
         :param source_batch_size: batch size
         :param crossover: is there a need to use crossover, if False, selection
         only will be used
+        :param check_mode: if True, in populations there is always one model
+        will remain unchanged (model with index 0)
 
         :return : dictionary with obtained model
             - model: neural network model
@@ -125,7 +128,8 @@ class NNOptimizer:
                                                       actual_criterion=self.current_criterion,
                                                       actual_batch_size=self.current_batch_size,
                                                       actual_nn=self.current_nn,
-                                                      amount_of_individuals=self.population_size)
+                                                      amount_of_individuals=self.population_size,
+                                                      check_mode=check_mode)
 
             # Train each individual by _train_population
             self._train_population(nns_list, chgs_list)
@@ -133,8 +137,6 @@ class NNOptimizer:
             # Calculate fitness score for every NN in nns_list
             pop_cycle_metadata = self.pop_logger.get_metadata(cycle=self.current_cycle)
             fitness_list = eval_fitness(metadata=pop_cycle_metadata)
-
-            print(f'Fitness list: {fitness_list}')
 
             # Crossover -> get NN to continue training
             updated_model = get_best_model(fitness_list=fitness_list,
