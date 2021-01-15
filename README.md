@@ -32,8 +32,16 @@ For now all the necessary description can be found in docstring.
 ## How to use
 
 How to run the algorithm can be seen in the examples:
-* Prediction of water levels (FNN) (in progress)
+* MNIST classification (FNN) (in progress)
 * [Remote sensing gap-filling example (CNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/CNN_autoencoder_gapfilling.py)
+
+## Comparison with competing solutions
+
+* CNN regression task - gap-filling in remote sensing data (The effectiveness of 
+MIHA is compared with init neural network training without hyperparameters search)
+* FNN classification task - MNIST classification (The effectiveness of 
+MIHA is compared with the [optuna framework](https://github.com/optuna/optuna))
+
 
 ## Contacts
 
