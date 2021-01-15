@@ -32,7 +32,7 @@ For now all the necessary description can be found in docstring.
 ## How to use
 
 How to run the algorithm can be seen in the examples:
-* [MNIST classification (FNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/FNN_mnist_classification.py)
+* [MNIST multiclass classification example (FNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/FNN_mnist_classification.py)
 * [Remote sensing gap-filling example (CNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/CNN_autoencoder_gapfilling.py)
 
 ## Comparison with competing solutions (jupyter notebooks)
