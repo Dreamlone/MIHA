@@ -37,7 +37,7 @@ How to run the algorithm can be seen in the examples:
 
 ## Comparison with competing solutions (jupyter notebooks)
 
-* [FNN classification task]((https://github.com/Dreamlone/MIHA/blob/main/jupyter_examples/MNIST_optuna_miha.ipynb)) - MNIST classification (The effectiveness of 
+* [FNN classification task](https://github.com/Dreamlone/MIHA/blob/main/jupyter_examples/MNIST_optuna_miha.ipynb) - MNIST classification (The effectiveness of 
 MIHA is compared with the [optuna framework](https://github.com/optuna/optuna))
 * [CNN regression task](https://github.com/Dreamlone/MIHA/blob/main/jupyter_examples/Images_gapfill_init_miha%20(rus).ipynb) - gap-filling in remote sensing data (The effectiveness of 
 MIHA is compared with init neural network training without hyperparameters search) (in russian)
