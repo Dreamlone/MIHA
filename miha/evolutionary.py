@@ -246,8 +246,7 @@ class Mutator:
                             'ReLU':torch.nn.ReLU(), 'ReLU6': torch.nn.ReLU6(),
                             'SELU':torch.nn.SELU(), 'Sigmoid': torch.nn.Sigmoid(),
                             'Tanh':torch.nn.Tanh(), 'Softmin': torch.nn.Softmin(),
-                            'Softmax': torch.nn.Softmax(), 'Softmax2d': torch.nn.Softmax2d(),
-                            'LogSoftmax':torch.nn.LogSoftmax()}
+                            'Softmax': torch.nn.Softmax(), 'LogSoftmax':torch.nn.LogSoftmax()}
 
         fucntion_obj = activations_dict.get(name_function)
         return fucntion_obj

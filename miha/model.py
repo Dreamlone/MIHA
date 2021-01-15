@@ -102,7 +102,10 @@ class NNOptimizer:
 
         # Initial configurations of the model, loss function, and optimizer
         self.current_nn = source_nn()
-        self.current_criterion = source_loss()
+        if source_loss != nn.functional.nll_loss:
+            self.current_criterion = source_loss()
+        else:
+            self.current_criterion = source_loss
         self.current_optimizer = source_optimizer(self.current_nn.parameters())
         self.current_batch_size = source_batch_size
 
