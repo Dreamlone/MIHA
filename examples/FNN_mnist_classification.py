@@ -14,9 +14,9 @@ class FnnClassifier(nn.Module):
 
     def __init__(self):
         super(FnnClassifier, self).__init__()
-        self.layer1 = nn.Sequential(nn.Linear(784, 500),
+        self.layer1 = nn.Sequential(nn.Linear(784, 400),
                                     nn.ReLU())
-        self.layer2 = nn.Sequential(nn.Linear(500, 10),
+        self.layer2 = nn.Sequential(nn.Linear(400, 10),
                                     nn.LogSoftmax())
 
     def forward(self, x):
@@ -29,14 +29,14 @@ gapfilling_optimizer = NNOptimizer(nn_type = 'FNN',
                                    task='classification',
                                    input='./data/mnist/X_train.pt',
                                    output='./data/mnist/Y_train.pt',
-                                   cycles=6,
-                                   population_size=4,
-                                   epoch_per_cycle=4,
-                                   fixing_epochs=10,
+                                   cycles=10,
+                                   population_size=5,
+                                   epoch_per_cycle=3,
+                                   fixing_epochs=3,
                                    runup_epochs=10,
                                    save_logs=True,
-                                   logs_folder='D:/miha_exp/mnist/2')
-# './data/mnist/logs'
+                                   logs_folder='./data/mnist/logs')
+
 # Find the best model hyperparameters set for chosen topology
 best_solution = gapfilling_optimizer.optimize(source_nn=FnnClassifier,
                                               source_loss=nn.functional.nll_loss,

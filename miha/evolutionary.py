@@ -194,7 +194,7 @@ class Mutator:
                 activations_list = ['ELU', 'Hardshrink', 'Hardsigmoid', 'Hardtanh',
                                     'ReLU', 'ReLU6', 'SELU', 'Sigmoid', 'Tanh']
             elif self.task == 'classification':
-                activations_list = ['Softmin', 'Softmax', 'Softmax2d', 'LogSoftmax']
+                activations_list = ['Softmin', 'Softmax', 'LogSoftmax']
         else:
             activations_list = ['ELU', 'Hardshrink', 'Hardsigmoid', 'Hardtanh',
                                 'ReLU', 'ReLU6', 'SELU', 'Sigmoid', 'Tanh']
