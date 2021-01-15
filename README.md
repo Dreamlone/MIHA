@@ -32,15 +32,15 @@ For now all the necessary description can be found in docstring.
 ## How to use
 
 How to run the algorithm can be seen in the examples:
-* MNIST classification (FNN) (in progress)
+* [MNIST classification (FNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/FNN_mnist_classification.py)
 * [Remote sensing gap-filling example (CNN)](https://github.com/Dreamlone/MIHA/blob/main/examples/CNN_autoencoder_gapfilling.py)
 
-## Comparison with competing solutions
+## Comparison with competing solutions (jupyter notebooks)
 
-* CNN regression task - gap-filling in remote sensing data (The effectiveness of 
-MIHA is compared with init neural network training without hyperparameters search)
-* FNN classification task - MNIST classification (The effectiveness of 
+* [FNN classification task]((https://github.com/Dreamlone/MIHA/blob/main/jupyter_examples/MNIST_optuna_miha.ipynb)) - MNIST classification (The effectiveness of 
 MIHA is compared with the [optuna framework](https://github.com/optuna/optuna))
+* [CNN regression task](https://github.com/Dreamlone/MIHA/blob/main/jupyter_examples/Images_gapfill_init_miha%20(rus).ipynb) - gap-filling in remote sensing data (The effectiveness of 
+MIHA is compared with init neural network training without hyperparameters search) (in russian)
 
 
 ## Contacts
