@@ -39,11 +39,11 @@ gapfilling_optimizer = NNOptimizer(nn_type = 'AE',
                                    task='regression',
                                    input='./data/remote_sensing_gapfilling/X_train.pt',
                                    output='./data/remote_sensing_gapfilling/Y_train.pt',
-                                   cycles=4,
-                                   population_size=3,
-                                   epoch_per_cycle=5,
-                                   fixing_epochs=4,
-                                   runup_epochs=5,
+                                   cycles=15,
+                                   population_size=4,
+                                   epoch_per_cycle=4,
+                                   fixing_epochs=10,
+                                   runup_epochs=10,
                                    save_logs=True,
                                    logs_folder='./data/remote_sensing_gapfilling/logs')
 
@@ -53,4 +53,4 @@ best_solution = gapfilling_optimizer.optimize(source_nn=ConvNet,
                                               source_optimizer=torch.optim.Adam,
                                               source_batch_size=32,
                                               crossover=False,
-                                              check_mode=True)
+                                              check_mode=False)
